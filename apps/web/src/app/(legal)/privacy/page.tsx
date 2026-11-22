@@ -61,9 +61,9 @@ export default function PrivacyPage() {
       <h2>Package, MCP, skill, and token checks</h2>
       <p>
         When you use the check page, our server sends what you entered to the matching public
-        source: npm, PyPI, OSV, the MCP Registry, GitHub, or a public blockchain RPC provider
-        (PublicNode). These results are computed on request and are not stored. Badges can be cached
-        by Cloudflare for up to an hour.
+        source: npm, PyPI, OSV, the MCP Registry, GitHub, or public blockchain RPC providers. These
+        results are computed on request and are not stored. Badges can be cached by Cloudflare for
+        up to an hour.
       </p>
 
       <h2>Bot protection</h2>
@@ -97,7 +97,10 @@ export default function PrivacyPage() {
         <li>Neon, which hosts our database.</li>
         <li>GitHub, which our server contacts to read public repository data.</li>
         <li>OSV, npm, and PyPI, which our server asks about public packages.</li>
-        <li>The MCP Registry and PublicNode, which provide data for the check page.</li>
+        <li>
+          The MCP Registry and public blockchain RPC providers, such as PublicNode, dRPC, and Tatum,
+          which provide data for the check page.
+        </li>
       </ul>
       <p>These providers may process data in countries other than your own.</p>
 

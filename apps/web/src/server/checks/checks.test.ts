@@ -291,13 +291,13 @@ describe("token checks", () => {
   const evm: CheckTarget = { kind: "token", chain: "base", address: `0x${"a".repeat(40)}` };
   const evmFetch =
     (name: string, symbol = "TKN", code = "0x6000"): FetchLike =>
-    async (url, init) => {
-      expect(new URL(url).hostname).toBe("base-rpc.publicnode.com");
+    async (_url, init) => {
       const body = JSON.parse(init.body as string) as {
         method: string;
         params: Array<{ data?: string }>;
       };
       if (body.method === "eth_getCode") return json({ result: code });
+      if (code === "0x") return json({ result: "0x" });
       return json({
         result: abiString(body.params[0]?.data === "0x06fdde03" ? name : symbol),
       });
@@ -336,6 +336,50 @@ describe("token checks", () => {
     await expect(check(evm, async () => json({}, 503))).rejects.toMatchObject({
       code: "check_unavailable",
     });
+  });
+
+  it("uses the backup provider when the first one fails", async () => {
+    const hosts: string[] = [];
+    const primary = evmFetch("Example Token");
+    const fetchImpl: FetchLike = async (url, init) => {
+      hosts.push(new URL(url).hostname);
+      if (url.includes("base.drpc.org")) throw new TypeError("timed out");
+      return primary(url, init);
+    };
+    const result = await check(evm, fetchImpl);
+    expect(result.name).toBe("Example Token (TKN)");
+    expect(hosts).toContain("base-rpc.publicnode.com");
+  });
+
+  it("uses a faster provider when the first one hangs", async () => {
+    const answer = evmFetch("Example Token");
+    const hanging: FetchLike = (url, init) =>
+      url.includes("base.drpc.org")
+        ? new Promise((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+          })
+        : answer(url, init);
+    const started = Date.now();
+    const result = await check(evm, hanging);
+    expect(result.name).toBe("Example Token (TKN)");
+    expect(Date.now() - started).toBeLessThan(2500);
+  });
+
+  it("does not report a rate-limited provider as a missing token", async () => {
+    const limited: FetchLike = async () =>
+      json({ error: { code: -32005, message: "rate limit exceeded" } });
+    await expect(check(evm, limited)).rejects.toMatchObject({ code: "check_unavailable" });
+  });
+
+  it("treats a reverted name call as empty text", async () => {
+    const reverted: FetchLike = async (_url, init) => {
+      const body = JSON.parse(init.body as string) as { method: string };
+      return body.method === "eth_getCode"
+        ? json({ result: "0x6000" })
+        : json({ error: { code: 3, message: "execution reverted" } });
+    };
+    const result = await check(evm, reverted);
+    expect(result.name).toBe("Unnamed token");
   });
 
   it("decodes ABI strings and rejects malformed data", () => {
@@ -397,7 +441,7 @@ describe("token checks", () => {
     };
     const result = await check({ kind: "token", chain: "solana", address: mint }, solana);
     expect(result.name).toBe("USD Coin (USDC)");
-    expect(urls.every((url) => new URL(url).hostname === "solana-rpc.publicnode.com")).toBe(true);
+    expect(urls.some((url) => url.includes("evil.example"))).toBe(false);
   });
 });
 

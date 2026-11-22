@@ -225,18 +225,33 @@ html {
 
 @supports ((background-clip: text) or (-webkit-background-clip: text)) {
   .wordmark-shine [data-testid="wordmark-visual"] {
-    background-image: linear-gradient(
-      105deg,
-      var(--line) 0%,
-      var(--line) 37%,
-      #4f8079 44%,
-      var(--accent) 50%,
-      #4f8079 56%,
-      var(--line) 63%,
-      var(--line) 100%
+    --wordmark-fade: linear-gradient(
+      to top,
+      #10292c 16%,
+      var(--line) 28%,
+      #4f8079 46%,
+      var(--muted) 62%,
+      var(--text) 76%
     );
-    background-position: 130% 0;
-    background-size: 260% 100%;
+    background-image:
+      linear-gradient(
+        105deg,
+        transparent 0%,
+        transparent 38%,
+        rgb(244 233 205 / 0.2) 45%,
+        rgb(244 233 205 / 0.9) 50%,
+        rgb(244 233 205 / 0.2) 55%,
+        transparent 62%,
+        transparent 100%
+      ),
+      var(--wordmark-fade);
+    background-position:
+      130% 0,
+      0 0;
+    background-repeat: no-repeat;
+    background-size:
+      260% 100%,
+      100% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -252,18 +267,22 @@ html {
 
 @keyframes wordmark-shimmer {
   from {
-    background-position: 130% 0;
+    background-position:
+      130% 0,
+      0 0;
   }
   to {
-    background-position: -30% 0;
+    background-position:
+      -30% 0,
+      0 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wordmark-shine [data-testid="wordmark-visual"] {
-    background-image: none;
-    color: var(--line);
-    -webkit-text-fill-color: currentColor;
+    background-image: var(--wordmark-fade);
+    background-position: 0 0;
+    background-size: 100% 100%;
     animation: none;
   }
 }

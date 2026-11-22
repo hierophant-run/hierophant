@@ -3,6 +3,7 @@ import { scan } from "@hierophant/engine";
 import { TOKEN_CHAINS, type CheckTarget, type TokenChain } from "@/lib/check-target";
 import { ApiError } from "../errors";
 import type { FetchLike } from "../github-client";
+import { errorName, logError } from "../log";
 import {
   buildResult,
   cleanText,
@@ -14,19 +15,39 @@ import {
   type CheckSignal,
 } from "./common";
 
-const RPC_URLS: Record<TokenChain, string> = {
-  ethereum: "https://ethereum-rpc.publicnode.com",
-  base: "https://base-rpc.publicnode.com",
-  arbitrum: "https://arbitrum-one-rpc.publicnode.com",
-  optimism: "https://optimism-rpc.publicnode.com",
-  polygon: "https://polygon-bor-rpc.publicnode.com",
-  bsc: "https://bsc-rpc.publicnode.com",
-  solana: "https://solana-rpc.publicnode.com",
+/** Free endpoints often rate-limit shared cloud IPs, so each chain has several providers. */
+const RPC_URLS: Record<TokenChain, readonly string[]> = {
+  ethereum: ["https://eth.drpc.org", "https://ethereum-rpc.publicnode.com"],
+  base: ["https://base.drpc.org", "https://base-rpc.publicnode.com", "https://mainnet.base.org"],
+  arbitrum: [
+    "https://arbitrum.drpc.org",
+    "https://arbitrum-one-rpc.publicnode.com",
+    "https://arb1.arbitrum.io/rpc",
+  ],
+  optimism: [
+    "https://optimism.drpc.org",
+    "https://optimism-rpc.publicnode.com",
+    "https://mainnet.optimism.io",
+  ],
+  polygon: ["https://polygon.drpc.org", "https://polygon-bor-rpc.publicnode.com"],
+  bsc: [
+    "https://bsc-rpc.publicnode.com",
+    "https://bsc-dataseed.bnbchain.org",
+    "https://bsc.drpc.org",
+  ],
+  solana: [
+    "https://solana-mainnet.gateway.tatum.io",
+    "https://solana-rpc.publicnode.com",
+    "https://api.mainnet-beta.solana.com",
+  ],
 };
 
 const MAX_RPC_BYTES = 256 * 1024;
 const MAX_TEXT_BYTES = 512;
-const RPC_TIMEOUT_MS = 6_000;
+const RPC_TIMEOUT_MS = 3_500;
+const HEDGE_DELAY_MS = 700;
+const RPC_CACHE_SECONDS = 3600;
+const RPC_CACHE_ORIGIN = "https://hierophanthq.com/__rpc-cache/";
 const ERC20_NAME = "0x06fdde03";
 const ERC20_SYMBOL = "0x95d89b41";
 const METADATA_PROGRAM = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
@@ -46,25 +67,161 @@ export const TOKEN_NOTICE =
 
 export type TokenText = { name: string; symbol: string; uri: string };
 
+/** A reverted call is a real answer. Any other RPC error means this provider failed. */
+function isRevert(error: unknown): boolean {
+  if (!isRecord(error)) return false;
+  return error.code === 3 || (typeof error.message === "string" && /revert/i.test(error.message));
+}
+
+type RpcAnswer = { ok: true; value: unknown } | { ok: false };
+type RpcCall = { chain: TokenChain; method: string; params: unknown[] };
+
+const edgeCache = () =>
+  (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default ?? null;
+
+const cacheKey = ({ chain, method, params }: RpcCall) => {
+  const hash = createHash("sha256")
+    .update(JSON.stringify([method, params]))
+    .digest("hex");
+  return new Request(`${RPC_CACHE_ORIGIN}${chain}/${hash}`);
+};
+
+async function readCached(call: RpcCall): Promise<RpcAnswer> {
+  try {
+    const hit = await edgeCache()?.match(cacheKey(call));
+    if (!hit) return { ok: false };
+    return { ok: true, value: ((await hit.json()) as { value: unknown }).value };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function writeCached(call: RpcCall, value: unknown): Promise<void> {
+  try {
+    await edgeCache()?.put(
+      cacheKey(call),
+      new Response(JSON.stringify({ value }), {
+        headers: {
+          "cache-control": `public, max-age=${RPC_CACHE_SECONDS}`,
+          "content-type": "application/json",
+        },
+      }),
+    );
+  } catch {
+    // The cache only saves requests, so a failed write changes nothing.
+  }
+}
+
+async function askProvider(
+  fetchImpl: FetchLike,
+  url: string,
+  call: RpcCall,
+  stop: AbortSignal,
+): Promise<RpcAnswer> {
+  const startedAt = Date.now();
+  let cause = "response";
+  let responseStatus = 0;
+  const tracked: FetchLike = async (input, init) => {
+    try {
+      return await fetchImpl(input, init);
+    } catch (error) {
+      cause = errorName(error);
+      throw error;
+    }
+  };
+  try {
+    const { status, body } = await fetchJson(
+      tracked,
+      url,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", "user-agent": "hierophant" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: call.method,
+          params: call.params,
+        }),
+        signal: AbortSignal.any([stop, AbortSignal.timeout(RPC_TIMEOUT_MS)]),
+      },
+      MAX_RPC_BYTES,
+    );
+    responseStatus = status;
+    if (status === 200 && isRecord(body)) {
+      if (!body.error) return { ok: true, value: body.result };
+      if (isRevert(body.error)) return { ok: true, value: null };
+      cause = "rpc_error";
+    }
+  } catch {
+    // The caller moves on to the next provider.
+  }
+  if (!stop.aborted) {
+    // Hosts here are fixed by this file, so this log cannot contain visitor or token data.
+    logError("rpc_failed", {
+      chain: call.chain,
+      host: new URL(url).hostname,
+      method: call.method,
+      status: responseStatus,
+      cause,
+      ms: Date.now() - startedAt,
+    });
+  }
+  return { ok: false };
+}
+
+/** Starts the next provider on failure or after a short delay, and keeps the first answer. */
+function firstAnswer(fetchImpl: FetchLike, call: RpcCall): Promise<unknown> {
+  const urls = RPC_URLS[call.chain];
+  const stop = new AbortController();
+  return new Promise((resolve, reject) => {
+    let next = 0;
+    let pending = 0;
+    let isDone = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const launch = () => {
+      clearTimeout(timer);
+      if (isDone) return;
+      if (next >= urls.length) {
+        if (pending === 0) {
+          isDone = true;
+          reject(new ApiError("check_unavailable"));
+        }
+        return;
+      }
+      const url = urls[next]!;
+      next += 1;
+      pending += 1;
+      timer = setTimeout(launch, HEDGE_DELAY_MS);
+      void askProvider(fetchImpl, url, call, stop.signal).then((answer) => {
+        pending -= 1;
+        if (isDone) return;
+        if (!answer.ok) {
+          launch();
+          return;
+        }
+        isDone = true;
+        clearTimeout(timer);
+        stop.abort();
+        resolve(answer.value);
+      });
+    };
+    launch();
+  });
+}
+
 async function rpc(
   fetchImpl: FetchLike,
   chain: TokenChain,
   method: string,
   params: unknown[],
 ): Promise<unknown> {
-  const { status, body } = await fetchJson(
-    fetchImpl,
-    RPC_URLS[chain],
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", "user-agent": "hierophant" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-      signal: AbortSignal.timeout(RPC_TIMEOUT_MS),
-    },
-    MAX_RPC_BYTES,
-  );
-  if (status !== 200 || !isRecord(body)) throw new ApiError("check_unavailable");
-  return body.error ? null : body.result;
+  const call: RpcCall = { chain, method, params };
+  const cached = await readCached(call);
+  if (cached.ok) return cached.value;
+  const value = await firstAnswer(fetchImpl, call);
+  if (value !== null && value !== undefined) await writeCached(call, value);
+  return value;
 }
 
 /** Decodes an ABI string, or the older bytes32 form that some tokens still use. */
@@ -90,12 +247,16 @@ async function readEvmToken(
   chain: TokenChain,
   address: string,
 ): Promise<TokenText> {
-  const code = await rpc(fetchImpl, chain, "eth_getCode", [address, "latest"]);
-  if (typeof code !== "string" || code === "0x") throw new ApiError("check_not_found");
   const call = (data: string) =>
     rpc(fetchImpl, chain, "eth_call", [{ to: address, data }, "latest"]);
   const [name, symbol] = await Promise.all([call(ERC20_NAME), call(ERC20_SYMBOL)]);
-  return { name: decodeAbiString(name), symbol: decodeAbiString(symbol), uri: "" };
+  const text = { name: decodeAbiString(name), symbol: decodeAbiString(symbol), uri: "" };
+  if (text.name || text.symbol) return text;
+
+  // Only empty results need this extra request, which keeps usage of free endpoints low.
+  const code = await rpc(fetchImpl, chain, "eth_getCode", [address, "latest"]);
+  if (typeof code !== "string" || code === "0x") throw new ApiError("check_not_found");
+  return text;
 }
 
 export function base58Decode(value: string): Uint8Array {
