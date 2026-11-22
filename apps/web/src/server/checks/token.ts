@@ -11,9 +11,11 @@ import {
   findingSignal,
   isRecord,
   type CheckContext,
+  type CheckDetail,
   type CheckResult,
   type CheckSignal,
 } from "./common";
+import { readTokenData, tokenDataRows } from "./token-data";
 
 /** Free endpoints often rate-limit shared cloud IPs, so each chain has several providers. */
 const RPC_URLS: Record<TokenChain, readonly string[]> = {
@@ -51,6 +53,10 @@ const RPC_CACHE_SECONDS = 3600;
 const RPC_CACHE_ORIGIN = "https://hierophanthq.com/__rpc-cache/";
 const ERC20_NAME = "0x06fdde03";
 const ERC20_SYMBOL = "0x95d89b41";
+const ERC20_DECIMALS = "0x313ce567";
+const CONTRACT_URI = "0xe8a3d485";
+const MAX_SHOWN_TEXT = 240;
+const SOLANA_DECIMALS_OFFSET = 44;
 const METADATA_PROGRAM = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
 const TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 const TOKEN_PROGRAMS = new Set(["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", TOKEN_2022]);
@@ -64,9 +70,22 @@ const STATUS_LABELS = {
 };
 
 export const TOKEN_NOTICE =
-  "This checks on-chain text only. It is not a safety rating, audit, or investment advice. It does not check the contract, liquidity, holders, ownership, or whether a token can be sold.";
+  "This checks on-chain text only. It is not a safety rating, audit, or investment advice. Holder and liquidity figures are context and do not affect this result. It does not check the contract, ownership, or whether a token can be sold.";
 
 export type TokenText = { name: string; symbol: string; uri: string };
+type TokenField = "name" | "symbol" | "uri";
+type TokenRead = TokenText & {
+  decimals: number | null;
+  isUriUnavailable: boolean;
+  truncated: TokenField[];
+};
+
+const INSPECTIONS = [
+  { label: "Hidden characters", rules: ["INJ-001"] },
+  { label: "Instructions aimed at AI agents", rules: ["INJ-002", "INJ-004"] },
+  { label: "Requests for secrets or credentials", rules: ["INJ-003"] },
+  { label: "Download-and-run commands", rules: ["EXEC-001", "EXEC-002", "EXEC-003"] },
+];
 
 /** A reverted call is a real answer. Any other RPC error means this provider failed. */
 function isRevert(error: unknown): boolean {
@@ -226,38 +245,79 @@ async function rpc(
 }
 
 /** Decodes an ABI string, or the older bytes32 form that some tokens still use. */
-export function decodeAbiString(hex: unknown): string {
-  if (typeof hex !== "string" || !/^0x(?:[0-9a-fA-F]{2})*$/.test(hex)) return "";
+function readAbiText(hex: unknown): { text: string; isTruncated: boolean } {
+  const empty = { text: "", isTruncated: false };
+  if (typeof hex !== "string" || !/^0x(?:[0-9a-fA-F]{2})*$/.test(hex)) return empty;
   const bytes = Buffer.from(hex.slice(2), "hex");
   if (bytes.length === 32) {
     const end = bytes.indexOf(0);
-    return bytes.subarray(0, end === -1 ? 32 : end).toString("utf8");
+    return {
+      text: bytes.subarray(0, end === -1 ? 32 : end).toString("utf8"),
+      isTruncated: false,
+    };
   }
-  if (bytes.length < 64) return "";
+  if (bytes.length < 64) return empty;
   const offset = Number(bytes.readBigUInt64BE(24));
-  if (!Number.isSafeInteger(offset) || offset + 32 > bytes.length) return "";
+  if (!Number.isSafeInteger(offset) || offset + 32 > bytes.length) return empty;
   const length = Number(bytes.readBigUInt64BE(offset + 24));
-  if (!Number.isSafeInteger(length) || offset + 32 + length > bytes.length) return "";
-  return bytes
-    .subarray(offset + 32, offset + 32 + Math.min(length, MAX_TEXT_BYTES))
-    .toString("utf8");
+  if (!Number.isSafeInteger(length) || offset + 32 + length > bytes.length) return empty;
+  return {
+    text: bytes
+      .subarray(offset + 32, offset + 32 + Math.min(length, MAX_TEXT_BYTES))
+      .toString("utf8"),
+    isTruncated: length > MAX_TEXT_BYTES,
+  };
+}
+
+export const decodeAbiString = (hex: unknown): string => readAbiText(hex).text;
+
+export function decodeDecimals(hex: unknown): number | null {
+  if (typeof hex !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(hex)) return null;
+  const value = BigInt(hex);
+  return value <= 255n ? Number(value) : null;
 }
 
 async function readEvmToken(
   fetchImpl: FetchLike,
   chain: TokenChain,
   address: string,
-): Promise<TokenText> {
+): Promise<TokenRead> {
   const call = (data: string) =>
     rpc(fetchImpl, chain, "eth_call", [{ to: address, data }, "latest"]);
-  const [name, symbol] = await Promise.all([call(ERC20_NAME), call(ERC20_SYMBOL)]);
-  const text = { name: decodeAbiString(name), symbol: decodeAbiString(symbol), uri: "" };
-  if (text.name || text.symbol) return text;
+  // Many tokens have neither optional field, and a failed read must not fail the whole check.
+  const optional = (data: string) =>
+    call(data).then(
+      (value) => ({ isRead: true, value }),
+      () => ({ isRead: false, value: null }),
+    );
+  const [nameHex, symbolHex, decimalsRead, uriRead] = await Promise.all([
+    call(ERC20_NAME),
+    call(ERC20_SYMBOL),
+    optional(ERC20_DECIMALS),
+    optional(CONTRACT_URI),
+  ]);
+  const name = readAbiText(nameHex);
+  const symbol = readAbiText(symbolHex);
+  const uri = readAbiText(uriRead.value);
+  const fields: Array<[TokenField, boolean]> = [
+    ["name", name.isTruncated],
+    ["symbol", symbol.isTruncated],
+    ["uri", uri.isTruncated],
+  ];
+  const token: TokenRead = {
+    name: name.text,
+    symbol: symbol.text,
+    uri: uri.text,
+    decimals: decodeDecimals(decimalsRead.value),
+    isUriUnavailable: !uriRead.isRead,
+    truncated: fields.filter(([, isTruncated]) => isTruncated).map(([field]) => field),
+  };
+  if (token.name || token.symbol) return token;
 
   // Only empty results need this extra request, which keeps usage of free endpoints low.
   const code = await rpc(fetchImpl, chain, "eth_getCode", [address, "latest"]);
   if (typeof code !== "string" || code === "0x") throw new ApiError("check_not_found");
-  return text;
+  return token;
 }
 
 export function base58Decode(value: string): Uint8Array {
@@ -382,41 +442,85 @@ async function readAccount(fetchImpl: FetchLike, address: string) {
   return { owner, data: Buffer.from(data[0], "base64") };
 }
 
-async function readSolanaToken(fetchImpl: FetchLike, address: string): Promise<TokenText> {
+async function readSolanaToken(fetchImpl: FetchLike, address: string): Promise<TokenRead> {
   const bytes = base58Decode(address);
   if (bytes.length !== 32) throw new ApiError("check_not_found");
   const mint = await readAccount(fetchImpl, address);
   if (!mint || !TOKEN_PROGRAMS.has(mint.owner)) throw new ApiError("check_not_found");
 
   const metadata = await readAccount(fetchImpl, metadataAddress(bytes));
-  if (metadata?.owner === METADATA_PROGRAM) return readBorshText(metadata.data, 65);
-  return (mint.owner === TOKEN_2022 ? token2022Text(mint.data) : null) ?? EMPTY_TEXT;
+  const text =
+    metadata?.owner === METADATA_PROGRAM
+      ? readBorshText(metadata.data, 65)
+      : ((mint.owner === TOKEN_2022 ? token2022Text(mint.data) : null) ?? EMPTY_TEXT);
+  return {
+    ...text,
+    decimals: mint.data[SOLANA_DECIMALS_OFFSET] ?? null,
+    isUriUnavailable: false,
+    truncated: [],
+  };
 }
 
-const FIELD_BY_LINE = ["Token name", "Token symbol", "Metadata URI"];
+function textRow(label: string, value: string, isTruncated: boolean): CheckDetail {
+  if (!value) return { label, value: "Not set" };
+  const notes = [
+    ...(value.startsWith("data:") ? ["Inline data is shown as stored and was not decoded."] : []),
+    ...(isTruncated ? [`Only the first ${MAX_TEXT_BYTES} bytes were inspected.`] : []),
+    ...(value.length > MAX_SHOWN_TEXT ? [`Showing the first ${MAX_SHOWN_TEXT} characters.`] : []),
+  ];
+  return {
+    label,
+    value: cleanText(value, MAX_SHOWN_TEXT),
+    ...(notes.length ? { note: notes.join(" ") } : {}),
+  };
+}
+
+function textRows(token: TokenRead, uriLabel: string): CheckDetail[] {
+  const uri = token.isUriUnavailable
+    ? { label: uriLabel, value: "Could not read" }
+    : textRow(uriLabel, token.uri, token.truncated.includes("uri"));
+  return [
+    textRow("Name", token.name, token.truncated.includes("name")),
+    textRow("Symbol", token.symbol, token.truncated.includes("symbol")),
+    { label: "Decimals", value: token.decimals === null ? "Not set" : String(token.decimals) },
+    uri,
+  ];
+}
 
 export async function runTokenCheck(
   target: Extract<CheckTarget, { kind: "token" }>,
   context: CheckContext,
 ): Promise<CheckResult> {
   const chain = TOKEN_CHAINS[target.chain];
-  const token =
+  const uriLabel = chain.family === "evm" ? "Contract URI" : "Metadata URI";
+  const fieldByLine = ["Token name", "Token symbol", uriLabel];
+  const [token, tokenData] = await Promise.all([
     chain.family === "evm"
-      ? await readEvmToken(context.fetch, target.chain, target.address)
-      : await readSolanaToken(context.fetch, target.address);
+      ? readEvmToken(context.fetch, target.chain, target.address)
+      : readSolanaToken(context.fetch, target.address),
+    context.includeTokenData ? readTokenData(context.fetch, target.chain, target.address) : null,
+  ]);
 
   const lines = [token.name, token.symbol, token.uri].map((value) => value.replace(/\r?\n/g, " "));
-  const signals: CheckSignal[] = scan([{ path: "CLAUDE.md", content: lines.join("\n") }])
-    .findings.filter(
-      (finding) => finding.ruleId.startsWith("INJ-") || finding.ruleId.startsWith("EXEC-"),
-    )
-    .map((finding) => findingSignal(finding, FIELD_BY_LINE[finding.line - 1] ?? "Token metadata"));
+  const findings = scan([{ path: "CLAUDE.md", content: lines.join("\n") }]).findings.filter(
+    (finding) => finding.ruleId.startsWith("INJ-") || finding.ruleId.startsWith("EXEC-"),
+  );
+  const signals: CheckSignal[] = findings.map((finding) =>
+    findingSignal(finding, fieldByLine[finding.line - 1] ?? "Token metadata"),
+  );
 
   if (!token.name && !token.symbol) {
     signals.push({
       severity: "info",
       title: "No on-chain name or symbol",
       detail: "There was no token text to inspect.",
+    });
+  }
+  if (token.isUriUnavailable) {
+    signals.push({
+      severity: "info",
+      title: "Contract URI could not be read",
+      detail: "This result covers the token name and symbol only.",
     });
   }
 
@@ -431,16 +535,25 @@ export async function runTokenCheck(
     statusLabels: STATUS_LABELS,
     notice: TOKEN_NOTICE,
     checked: [
-      "On-chain token name and symbol",
-      ...(chain.family === "solana" ? ["The metadata URI as text"] : []),
+      "On-chain token name, symbol, and decimals",
+      `The ${chain.family === "evm" ? "contract" : "metadata"} URI as text, when present`,
       "Hidden characters and instructions aimed at AI agents",
     ],
     notChecked: [
       "Contract code and permissions",
-      "Liquidity, holders, and ownership",
+      "Token ownership and admin controls",
+      "Whether liquidity is real or locked",
       "Whether the token can be sold",
       "Price or investment risk",
       "Off-chain metadata, which is never fetched",
     ],
+    tokenDetails: {
+      text: textRows(token, uriLabel),
+      inspections: INSPECTIONS.map(({ label, rules }) => ({
+        label,
+        isFound: findings.some((finding) => rules.includes(finding.ruleId)),
+      })),
+      market: tokenData ? tokenDataRows(tokenData) : null,
+    },
   });
 }

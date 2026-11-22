@@ -13,6 +13,14 @@ export type CheckSignal = {
   href?: string;
 };
 
+export type CheckDetail = { label: string; value: string; note?: string };
+export type CheckInspection = { label: string; isFound: boolean };
+export type TokenDetails = {
+  text: CheckDetail[];
+  inspections: CheckInspection[];
+  market: CheckDetail[] | null;
+};
+
 export type CheckResult = {
   target: CheckTarget;
   kindLabel: string;
@@ -27,9 +35,15 @@ export type CheckResult = {
   checked: string[];
   notChecked: string[];
   notice: string;
+  tokenDetails?: TokenDetails;
 };
 
-export type CheckContext = { fetch: FetchLike; githubToken?: string };
+export type CheckContext = {
+  fetch: FetchLike;
+  githubToken?: string;
+  /** Badges skip these figures so that embedded images do not load third-party sources. */
+  includeTokenData?: boolean;
+};
 
 const RANK: Record<CheckSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
 const STATUS_LABELS: Record<ScanStatus, string> = {

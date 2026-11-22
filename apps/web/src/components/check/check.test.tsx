@@ -31,6 +31,24 @@ describe("CheckDocument", () => {
     expect(screen.getByAltText("Token metadata: No injection found")).toBeTruthy();
   });
 
+  it("shows token evidence and labels market data as context", () => {
+    render(
+      <CheckDocument
+        result={result({
+          tokenDetails: {
+            text: [{ label: "Name", value: "Example Token" }],
+            inspections: [{ label: "Hidden characters", isFound: false }],
+            market: [{ label: "Holders", value: "1,234", note: "Reported by GeckoTerminal." }],
+          },
+        })}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "What was read" })).toBeTruthy();
+    expect(screen.getByText("None found")).toBeTruthy();
+    expect(screen.getByText("1,234")).toBeTruthy();
+    expect(screen.getByText(/not a safety rating or buy\s+signal/)).toBeTruthy();
+  });
+
   it("renders hostile remote text as plain text", () => {
     const payload = '<img src=x onerror="window.__xss=1">';
     const { container } = render(

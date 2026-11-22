@@ -42,13 +42,18 @@ export default function ChecksPage() {
       <h2>Token metadata</h2>
       <p>
         <strong>This is not a safety rating, audit, or investment advice.</strong> Hierophant reads
-        a token’s on-chain name and symbol, plus the metadata URI on Solana, and looks for hidden
-        characters or instructions aimed at AI agents.
+        a token’s on-chain name, symbol, decimals, and contract or metadata URI as text, then looks
+        for hidden characters or instructions aimed at AI agents.
       </p>
       <p>
-        It does not check the contract, liquidity, holders, ownership, price, or whether a token can
-        be sold. A token with no injection found can still be a scam. Off-chain metadata is never
-        fetched.
+        Result pages also show holder and DEX liquidity figures from GeckoTerminal and DexScreener.
+        These figures are context only. They can be wrong or manipulated, and they do not affect
+        the result.
+      </p>
+      <p>
+        It does not check the contract, ownership, price, whether liquidity is real or locked, or
+        whether a token can be sold. A token with no injection found can still be a scam.
+        Off-chain metadata is never fetched.
       </p>
       <p>Supported chains: Ethereum, Base, Arbitrum, Optimism, Polygon, BNB Chain, Robinhood Chain, and
         Solana.</p>

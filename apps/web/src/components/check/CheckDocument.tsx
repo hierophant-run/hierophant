@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { cn } from "@/lib/cn";
 import { checkBadgeMarkdown, checkBadgePath, type CheckResult } from "@/server/checks";
-import type { CheckSignal } from "@/server/checks/common";
+import type { CheckDetail, CheckInspection, CheckSignal } from "@/server/checks/common";
 
 const STATUS_COLORS: Record<ScanStatus, string> = {
   dangerous: "text-danger",
@@ -75,8 +75,51 @@ function ScopeList({ title, items }: { title: string; items: string[] }) {
   );
 }
 
+function DetailRows({ rows }: { rows: CheckDetail[] }) {
+  return (
+    <dl className="mt-6 border-t border-line">
+      {rows.map((row) => (
+        <div
+          key={row.label}
+          className="grid grid-cols-1 gap-1 border-b border-line py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-6"
+        >
+          <dt className="text-sm text-muted">{row.label}</dt>
+          <dd className="min-w-0">
+            <span className="font-mono text-sm break-all">{row.value}</span>
+            {row.note ? <p className="mt-1 text-xs leading-5 text-muted">{row.note}</p> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function InspectionRows({ items }: { items: CheckInspection[] }) {
+  return (
+    <ul className="mt-6 border-t border-line">
+      {items.map((item) => (
+        <li
+          key={item.label}
+          className="flex items-center justify-between gap-4 border-b border-line py-3"
+        >
+          <span className="text-sm">{item.label}</span>
+          <span
+            className={cn(
+              "shrink-0 border px-2 py-0.5 text-xs font-medium",
+              item.isFound ? "border-danger text-danger" : "border-line text-muted",
+            )}
+          >
+            {item.isFound ? "Found" : "None found"}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CheckDocument({ result }: { result: CheckResult }) {
   const isToken = result.target.kind === "token";
+  const details = result.tokenDetails;
   const checkedAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -121,6 +164,28 @@ export function CheckDocument({ result }: { result: CheckResult }) {
         <p className="mt-4 max-w-2xl leading-7 text-muted">{result.notice}</p>
       </Card>
 
+      {details ? (
+        <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-2">
+          <section aria-labelledby="read-title" className="min-w-0">
+            <Eyebrow>Evidence</Eyebrow>
+            <h2 id="read-title" className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl">
+              What was read
+            </h2>
+            <DetailRows rows={details.text} />
+          </section>
+          <section aria-labelledby="inspected-title" className="min-w-0">
+            <Eyebrow>Inspection</Eyebrow>
+            <h2
+              id="inspected-title"
+              className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl"
+            >
+              What was inspected
+            </h2>
+            <InspectionRows items={details.inspections} />
+          </section>
+        </div>
+      ) : null}
+
       <section aria-labelledby="signals-title" className="mt-14">
         <Eyebrow>Signals</Eyebrow>
         <h2 id="signals-title" className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl">
@@ -136,6 +201,21 @@ export function CheckDocument({ result }: { result: CheckResult }) {
           <p className="mt-4 leading-7 text-muted">The current checks raised no signals.</p>
         )}
       </section>
+
+      {details?.market ? (
+        <section aria-labelledby="market-title" className="mt-14">
+          <Eyebrow>Context</Eyebrow>
+          <h2 id="market-title" className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl">
+            Public token data
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            Reported by third parties and cached for up to 15 minutes. These figures can be wrong or
+            manipulated. They do not affect the result above and are not a safety rating or buy
+            signal.
+          </p>
+          <DetailRows rows={details.market} />
+        </section>
+      ) : null}
 
       <section aria-labelledby="scope-title" className="mt-14">
         <Eyebrow>Scope</Eyebrow>

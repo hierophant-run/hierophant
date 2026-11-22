@@ -32,7 +32,9 @@ export default async function CheckResultPage({ params, searchParams }: PageProp
   let result: CheckResult | null = null;
   let message = "This check could not be completed. Please try again.";
   try {
-    result = await loadCheck(target, { headers: await headers() }, getDeps());
+    result = await loadCheck(target, { headers: await headers() }, getDeps(), {
+      includeTokenData: true,
+    });
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 404) notFound();
