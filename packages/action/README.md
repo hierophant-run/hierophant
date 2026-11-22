@@ -2,7 +2,7 @@
 
 Checks agent hooks, rules, MCP configs, and auto-run tasks in a checkout. It reads files as text and never executes them. It makes no network requests and needs no token.
 
-**Status: prepared, not published.** This action is not on GitHub Marketplace yet, and the repository path below is a placeholder until the project repository exists.
+**Status: prepared, not published.** This action is not on GitHub Marketplace yet and has not been validated on a hosted runner.
 
 ## Usage
 
@@ -20,8 +20,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      # Pin to a full commit SHA once the action is published.
-      - uses: OWNER/hierophant/packages/action@COMMIT_SHA
+      # Replace COMMIT_SHA with a full commit SHA.
+      - uses: hierophant-run/hierophant/packages/action@COMMIT_SHA
         with:
           fail-on: high
 ```
