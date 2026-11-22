@@ -225,6 +225,13 @@ describe("landing copy", () => {
     expect(screen.getByText("Not affiliated with these products.")).toBeTruthy();
   });
 
+  it("opens the GitHub repository without passing page context", () => {
+    const { container } = renderAll();
+    const links = [...container.querySelectorAll('a[href*="github.com/hierophant-run"]')];
+    expect(links.length).toBeGreaterThanOrEqual(3);
+    for (const link of links) expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
   it("has no links to pages that do not exist yet", () => {
     const { container } = renderAll();
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
@@ -236,6 +243,7 @@ describe("landing copy", () => {
       "/privacy",
       "/terms",
       "/report-policy",
+      "https://github.com/hierophant-run/hierophant",
     ];
     expect(hrefs.every((href) => href?.startsWith("/#") || pages.includes(href ?? ""))).toBe(true);
   });

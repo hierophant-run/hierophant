@@ -5,6 +5,8 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3
   "",
 );
 
+export const GITHUB_URL = "https://github.com/hierophant-run/hierophant";
+
 const DOCS_ORIGIN = (process.env.NEXT_PUBLIC_DOCS_URL ?? "").replace(/\/+$/, "");
 
 /** A docs page. Production serves docs from their own subdomain. */

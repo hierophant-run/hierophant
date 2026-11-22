@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { docsHref, siteHref } from "@/lib/site";
+import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Quickstart",
@@ -111,9 +111,9 @@ export default function QuickstartPage() {
 
       <h2>Local tools</h2>
       <p>
-        A command-line scanner, a GitHub Action for CI, a read-only MCP server, and a command that
-        locks your agent settings have been prepared. They use the same rules, but they have not
-        been published yet, so they cannot be installed.
+        A command-line scanner, a read-only MCP server, a settings lock, and a preview GitHub Action
+        use the same rules. They are not on npm or GitHub Marketplace yet, but you can run them from
+        the <a href={GITHUB_URL}>source code on GitHub</a>.
       </p>
     </>
   );

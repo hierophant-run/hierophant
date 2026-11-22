@@ -1,5 +1,5 @@
 import { Logo } from "@/components/brand/Logo";
-import { docsHref, siteHref } from "@/lib/site";
+import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
 import { FooterWordmark } from "./FooterWordmark";
 import { ScanLink } from "./ScanLink";
 
@@ -53,6 +53,11 @@ export function Footer() {
             <li>
               <a href={docsHref("/limitations")} className={linkClass}>
                 Limitations
+              </a>
+            </li>
+            <li>
+              <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
+                GitHub
               </a>
             </li>
           </ul>

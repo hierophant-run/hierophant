@@ -1,5 +1,5 @@
 import { Logo } from "@/components/brand/Logo";
-import { docsHref, siteHref } from "@/lib/site";
+import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
 import { ScanLink } from "./ScanLink";
 
 const linkClass = "text-sm text-muted transition-colors hover:text-text";
@@ -21,6 +21,9 @@ export function Navbar() {
           </a>
           <a href={docsHref()} className={linkClass}>
             Docs
+          </a>
+          <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
+            GitHub
           </a>
         </nav>
 
@@ -56,6 +59,14 @@ export function Navbar() {
               </a>
               <a href={docsHref()} className={`${linkClass} px-2 py-2.5`}>
                 Docs
+              </a>
+              <a
+                href={GITHUB_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                className={`${linkClass} px-2 py-2.5`}
+              >
+                GitHub
               </a>
             </nav>
           </details>

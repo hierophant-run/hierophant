@@ -202,4 +202,4 @@ Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.m
 
 ## License
 
-No open source license has been granted yet. You can view the code, but all rights are reserved until a license is added.
+Hierophant is licensed under the [Apache License 2.0](LICENSE). The license does not grant rights to use the Hierophant name or logo, except to describe where the software came from.
