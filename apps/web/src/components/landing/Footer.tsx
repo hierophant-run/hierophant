@@ -68,12 +68,12 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5">
             <li>
               <a href={siteHref("/privacy")} className={linkClass}>
-                Privacy (draft)
+                Privacy
               </a>
             </li>
             <li>
               <a href={siteHref("/terms")} className={linkClass}>
-                Terms (draft)
+                Terms
               </a>
             </li>
             <li>

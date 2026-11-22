@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { docsHref } from "@/lib/site";
 import { Contact } from "@/components/site/Contact";
-import { DraftNotice } from "@/components/site/DraftNotice";
+import { docsHref, GITHUB_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Terms of Use (Draft)",
-  description: "Draft terms of use for Hierophant.",
-  robots: { index: false, follow: true },
+  title: "Terms of Use",
+  description: "The terms for using the hosted Hierophant service.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
   return (
     <>
-      <DraftNotice />
-      <h1 className="mt-8">Terms of Use</h1>
-      <p>Last updated: [date of publication]</p>
+      <h1>Terms of Use</h1>
+      <p>Last updated: November 23, 2026</p>
       <p>These terms apply to your use of Hierophant. By using the service, you agree to them.</p>
 
       <h2>The service</h2>
@@ -48,35 +46,44 @@ export default function TermsPage() {
         our <Link href="/report-policy">report policy</Link>.
       </p>
 
+      <h2>Open source code</h2>
+      <p>
+        The <a href={GITHUB_URL}>Hierophant source code</a> is licensed under the Apache License
+        2.0. That license governs your use of the code. These terms govern your use of the hosted
+        service. Neither grants rights to use the Hierophant name or logo, except to describe where
+        the software came from.
+      </p>
+
       <h2>Third-party names</h2>
       <p>
         Product names are used only to describe compatibility. Hierophant is not affiliated with or
         endorsed by those products.
       </p>
 
+      <h2>Availability</h2>
+      <p>
+        We may change, limit, or stop any part of the service at any time, and we may block use that
+        breaks these terms.
+      </p>
+
       <h2>Disclaimer of warranties</h2>
       <p>
-        [To be finalized with legal counsel.] The service is provided “as is” and “as available”,
-        without warranties of any kind, to the extent permitted by law.
+        The service is provided “as is” and “as available”, without warranties of any kind, to the
+        extent permitted by law.
       </p>
 
       <h2>Limitation of liability</h2>
       <p>
-        [To be finalized with legal counsel.] To the extent permitted by law, Hierophant is not
-        liable for damages arising from your use of the service or reliance on its results.
+        To the extent permitted by law, Hierophant is not liable for damages arising from your use
+        of the service or reliance on its results.
       </p>
 
       <h2>Changes</h2>
-      <p>
-        We may change the service or these terms. Material changes will be reflected on this page.
-      </p>
-
-      <h2>Governing law</h2>
-      <p>[Governing law and venue to be decided with legal counsel.]</p>
+      <p>We will post any changes to these terms on this page and update the date above.</p>
 
       <h2>Contact</h2>
       <p>
-        Questions: <Contact />
+        For questions, contact us through <Contact />.
       </p>
     </>
   );

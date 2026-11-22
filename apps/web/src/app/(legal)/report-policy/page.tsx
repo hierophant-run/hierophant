@@ -38,22 +38,27 @@ export default function ReportPolicyPage() {
       <h2>Request a correction</h2>
       <p>
         For a single finding, use <strong>Report a false positive</strong> on the report. To explain
-        a wrong result in more detail, write to <Contact /> with the report link and what is wrong.
-        Confirmed errors are fixed through the rules and released in a new ruleset version.
+        a wrong result in more detail, contact us through <Contact /> with the repository name and
+        what is wrong. Confirmed errors are fixed through the rules and released in a new ruleset
+        version.
       </p>
 
       <h2>Request a removal</h2>
       <p>
-        If you maintain the repository, write to <Contact /> with:
+        If you maintain the repository, contact us through <Contact /> with:
       </p>
       <ol>
-        <li>The report link.</li>
         <li>The repository name.</li>
+        <li>The commit, if you know it.</li>
         <li>
-          How we can confirm you maintain it, such as a commit or issue from your GitHub account
-          that mentions the request.
+          How we can confirm you maintain it, such as a request from a GitHub account with access to
+          the repository.
         </li>
       </ol>
+      <p>
+        GitHub Issues are public, so do not include a report link, private details, or secrets
+        there.
+      </p>
       <p>
         Removing a report deletes its findings and feedback counts, and its link and badge stop
         working. A cached badge can take a few minutes to disappear.

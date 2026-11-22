@@ -1,7 +1,7 @@
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, GITHUB_URL } from "@/lib/site";
 
-/** Shows the public contact, or says plainly that none has been published yet. */
+/** Uses the public email once one is configured, and GitHub Issues until then. */
 export function Contact() {
-  if (!CONTACT_EMAIL) return <strong>[contact address to be published before launch]</strong>;
+  if (!CONTACT_EMAIL) return <a href={`${GITHUB_URL}/issues`}>GitHub Issues</a>;
   return <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>;
 }

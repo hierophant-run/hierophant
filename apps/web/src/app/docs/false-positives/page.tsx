@@ -45,7 +45,7 @@ export default function FalsePositivesPage() {
       <h2>If you own the repository</h2>
       <p>
         To ask for a correction or removal, follow the{" "}
-        <Link href={siteHref("/report-policy")}>report policy</Link> or write to <Contact />.
+        <Link href={siteHref("/report-policy")}>report policy</Link> or contact us through <Contact />.
       </p>
     </>
   );

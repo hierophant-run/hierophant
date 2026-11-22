@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { docsHref, SITE_URL } from "@/lib/site";
 
-// Draft legal pages and reports are left out because they are noindex.
-const SITE_PATHS = ["", "/report-policy"];
+// Reports are left out because they are noindex.
+const SITE_PATHS = ["", "/report-policy", "/privacy", "/terms"];
 const DOCS_PATHS = ["", "/how-it-works", "/rules", "/limitations", "/false-positives"];
 
 const absolute = (href: string) => (href.startsWith("http") ? href : `${SITE_URL}${href}`);

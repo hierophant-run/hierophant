@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
 import { Contact } from "@/components/site/Contact";
-import { DraftNotice } from "@/components/site/DraftNotice";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy (Draft)",
-  description: "Draft privacy policy for Hierophant.",
-  robots: { index: false, follow: true },
+  title: "Privacy Policy",
+  description: "What Hierophant processes when you scan a repository or use the website.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
   return (
     <>
-      <DraftNotice />
-      <h1 className="mt-8">Privacy Policy</h1>
-      <p>Last updated: [date of publication]</p>
-      <p>This policy describes what Hierophant processes when you use it.</p>
+      <h1>Privacy Policy</h1>
+      <p>Last updated: November 23, 2026</p>
+      <p>
+        This policy explains what Hierophant processes when you use hierophanthq.com and
+        docs.hierophanthq.com. “We” means the team that operates Hierophant.
+      </p>
 
       <h2>What we do not collect</h2>
       <ul>
-        <li>No accounts, names, or email addresses are needed to scan a repository.</li>
+        <li>No account, name, or email address is needed to scan a repository.</li>
         <li>We do not set cookies ourselves.</li>
         <li>We do not use third-party analytics or advertising.</li>
         <li>We do not store the contents of scanned files.</li>
@@ -33,7 +34,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         Anyone with a report link can open it. Reports are kept until they are removed, and they do
-        not expire automatically at this time.
+        not expire automatically at this time. Repository owners can request removal under our{" "}
+        <a href="/report-policy">report policy</a>.
       </p>
 
       <h2>Code excerpts</h2>
@@ -58,9 +60,10 @@ export default function PrivacyPage() {
 
       <h2>Bot protection</h2>
       <p>
-        When enabled, Cloudflare Turnstile checks that a scan comes from a person. It loads after
-        you start using the scan form. Cloudflare processes signals from your browser to run this
-        check under its own privacy policy. We do not send it your IP address from our server.
+        If bot protection is turned on, Cloudflare Turnstile checks that a scan comes from a person.
+        It loads after you start using the scan form. Cloudflare processes signals from your browser
+        to run this check under its own privacy policy. We do not send it your IP address from our
+        server.
       </p>
 
       <h2>False-positive reports</h2>
@@ -69,31 +72,49 @@ export default function PrivacyPage() {
         store free text or anything that identifies you.
       </p>
 
-      <h2>Logs</h2>
+      <h2>Hosting and logs</h2>
+      <p>
+        Cloudflare hosts Hierophant. To deliver and protect the website, it processes request data
+        such as your IP address, the requested URL, browser details, and the time. It may keep this
+        data in logs and may set security cookies under its own policies.
+      </p>
       <p>
         Our application logs record error codes, the affected feature, and the time. They are
-        designed to exclude IP addresses, tokens, and repository content. Our hosting provider may
-        keep standard request logs: [confirm details and retention once hosting is chosen].
+        designed to exclude IP addresses, tokens, and repository content.
       </p>
 
       <h2>Service providers</h2>
       <ul>
-        <li>GitHub, which our server contacts to read public repository data.</li>
+        <li>Cloudflare, which hosts and protects the website.</li>
         <li>Neon, which hosts our database.</li>
+        <li>GitHub, which our server contacts to read public repository data.</li>
         <li>OSV, npm, and PyPI, which our server asks about public packages.</li>
-        <li>Cloudflare, when bot protection is enabled.</li>
-        <li>[Hosting provider, to be confirmed before launch].</li>
       </ul>
+      <p>These providers may process data in countries other than your own.</p>
+
+      <h2>Why we process this data</h2>
+      <p>
+        We process this data to provide the service, keep it reliable, and prevent abuse. Where laws
+        such as the GDPR apply, we rely on our legitimate interest in doing so.
+      </p>
 
       <h2>Your rights</h2>
       <p>
-        Depending on where you live, you may have rights to access, correct, or delete personal
-        data. [Legal bases and regional rights to be completed with legal counsel.]
+        Depending on where you live, you may have rights to access, correct, delete, or object to
+        the processing of your personal data. Because Hierophant has no accounts and stores IP
+        addresses only as hashes, we may be unable to identify data that relates to you.
       </p>
+
+      <h2>Children</h2>
+      <p>Hierophant is a developer tool and is not directed at children.</p>
+
+      <h2>Changes</h2>
+      <p>We will post any changes to this policy on this page and update the date above.</p>
 
       <h2>Contact</h2>
       <p>
-        Questions and requests: <Contact />
+        For questions or requests, contact us through <Contact />. GitHub Issues are public, so do
+        not include private details there.
       </p>
     </>
   );
