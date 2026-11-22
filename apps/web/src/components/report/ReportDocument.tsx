@@ -324,7 +324,7 @@ export function ReportDocument({ report }: { report: ReportView }) {
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <CopyLinkButton />
-          <Button href="/#scan-url" variant="secondary">
+          <Button href="/#check-repo" variant="secondary">
             Scan another repo
           </Button>
         </div>

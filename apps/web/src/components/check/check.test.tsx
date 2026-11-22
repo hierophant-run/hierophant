@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CheckResult } from "@/server/checks";
+import { checkPath, targetFromInput } from "@/lib/check-target";
 import { CheckDocument } from "./CheckDocument";
-import { CheckForm } from "./CheckForm";
+import { CheckPanel } from "./CheckPanel";
 
 const result = (overrides: Partial<CheckResult> = {}): CheckResult => ({
   target: { kind: "token", chain: "base", address: `0x${"a".repeat(40)}` },
@@ -63,27 +64,95 @@ describe("CheckDocument", () => {
   });
 });
 
-describe("CheckForm", () => {
+describe("CheckPanel", () => {
   const field = (name: string) => screen.getByLabelText(name) as HTMLInputElement;
 
-  it("switches between check types", () => {
-    render(<CheckForm />);
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/");
+    vi.stubGlobal("scrollTo", vi.fn());
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true })),
+    );
+  });
+
+  it("starts on repositories", () => {
+    render(<CheckPanel />);
+    expect(field("Public GitHub repository URL")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Repo" }).getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("switches between every check type", () => {
+    render(<CheckPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Package" }));
     expect(field("Package name")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "MCP server" }));
+    fireEvent.click(screen.getByRole("button", { name: "MCP" }));
     expect(field("MCP Registry server name")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Agent skill" }));
+    fireEvent.click(screen.getByRole("button", { name: "Skill" }));
     expect(field("GitHub URL of the skill folder")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Token" }));
-    expect(field("Token contract or mint address")).toBeTruthy();
+    expect(field("Token address")).toBeTruthy();
     expect(screen.getByLabelText("Blockchain")).toBeTruthy();
-    expect(screen.getByText(/not a safety rating or investment advice/)).toBeTruthy();
+    expect(screen.getByText(/Not a safety rating or investment advice/)).toBeTruthy();
+    expect(window.location.hash).toBe("#check-token");
+  });
+
+  it("opens the tab named in the URL", () => {
+    window.history.replaceState(null, "", "/#check-mcp");
+    render(<CheckPanel />);
+    expect(field("MCP Registry server name")).toBeTruthy();
+  });
+
+  it("ignores an unknown hash", () => {
+    window.history.replaceState(null, "", "/#check-constructor");
+    render(<CheckPanel />);
+    expect(field("Public GitHub repository URL")).toBeTruthy();
   });
 
   it("rejects an invalid token address", () => {
-    render(<CheckForm />);
+    render(<CheckPanel />);
     fireEvent.click(screen.getByRole("button", { name: "Token" }));
-    fireEvent.change(field("Token contract or mint address"), { target: { value: "0x123" } });
+    fireEvent.change(field("Token address"), { target: { value: "0x123" } });
     fireEvent.click(screen.getByRole("button", { name: "Check" }));
     expect(screen.getByRole("alert").textContent).toContain("valid token address");
+  });
+
+  it("offers Robinhood Chain and keeps the address field general", () => {
+    render(<CheckPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Token" }));
+    expect(screen.getByRole("option", { name: "Robinhood" })).toBeTruthy();
+    expect(field("Token address").placeholder).toBe("Token address");
+    const target = targetFromInput({
+      type: "token",
+      value: `0x${"A".repeat(40)}`,
+      ecosystem: "npm",
+      chain: "robinhood",
+    });
+    expect(target && checkPath(target)).toBe(`/check/token/robinhood/0x${"a".repeat(40)}`);
+  });
+
+  it("stays on the repo form while a scan is running", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    render(<CheckPanel />);
+    fireEvent.change(field("Public GitHub repository URL"), {
+      target: { value: "https://github.com/owner/repo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Scan" }));
+
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Token" }) as HTMLButtonElement).disabled).toBe(
+        true,
+      ),
+    );
+    window.location.hash = "#check-token";
+    await waitFor(() => expect(window.location.hash).toBe("#check-repo"));
+    expect(field("Public GitHub repository URL")).toBeTruthy();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 });

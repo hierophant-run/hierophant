@@ -102,12 +102,17 @@ async function requestScan(
   return body.report;
 }
 
-export function ScanForm() {
+export function ScanForm({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
+  const [isScanning, setScanning] = useState(false);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const challenge = useRef<HTMLDivElement>(null);
+
+  const setIsScanning = (busy: boolean) => {
+    setScanning(busy);
+    onBusyChange?.(busy);
+  };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -145,7 +150,7 @@ export function ScanForm() {
   const status = progress ? describeProgress(progress) : null;
 
   return (
-    <div className="mt-6 w-full max-w-xl">
+    <div className="w-full">
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-2 sm:flex-row">
         <label htmlFor="scan-url" className="sr-only">
           Public GitHub repository URL

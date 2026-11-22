@@ -1,12 +1,12 @@
-![Hierophant: see what a repo will make your AI agent do, before you click Trust.](apps/web/src/app/opengraph-image.png)
+![Hierophant: check what you add to your AI agent, before you click Trust.](apps/web/src/app/opengraph-image.png)
 
 # Hierophant
 
-**Reveals what your repo is hiding.**
+**Reveals what your agent is about to trust.**
 
-Hierophant shows what a repository would make your AI coding agent do, before you click **Trust**. It reads hooks, rules, MCP configs, and auto-run tasks as text, then explains the impact on each agent you use. Nothing from the repository is executed.
+Hierophant checks what you add to your AI coding agent, before you click **Trust**: repositories, npm and PyPI packages, MCP servers, agent skills, and token metadata. It reads public files and metadata as text, then explains what could run or steer your agent. Nothing is installed or executed.
 
-[Scan a repo](https://hierophanthq.com) · [Docs](https://docs.hierophanthq.com) · [Rule catalog](https://docs.hierophanthq.com/rules) · [Limitations](https://docs.hierophanthq.com/limitations) · [Security](SECURITY.md)
+[Start a check](https://hierophanthq.com) · [Docs](https://docs.hierophanthq.com) · [Rule catalog](https://docs.hierophanthq.com/rules) · [Limitations](https://docs.hierophanthq.com/limitations) · [Security](SECURITY.md)
 
 ## Why it exists
 
@@ -47,7 +47,7 @@ The current ruleset, v0.3.0, has 19 rules across five areas:
 
 ### On the web
 
-Paste a public GitHub URL at **[hierophanthq.com](https://hierophanthq.com)**. No install or account is needed.
+Open **[hierophanthq.com](https://hierophanthq.com)**, choose Repo, Package, MCP, Skill, or Token, and paste what you want to check. No install or account is needed. Token checks only read on-chain text and are not a safety rating or investment advice.
 
 ### From the command line
 

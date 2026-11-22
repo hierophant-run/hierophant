@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CheckPanel } from "@/components/check/CheckPanel";
 import { Footer } from "@/components/landing/Footer";
 import { HowItWorks, WhatWeDontClaim } from "@/components/landing/InfoSections";
 import "@/components/landing/landing.css";
@@ -6,15 +7,14 @@ import { Navbar } from "@/components/landing/Navbar";
 import { NetworkDiagram } from "@/components/landing/NetworkDiagram";
 import { ProductGrid } from "@/components/landing/ProductGrid";
 import { RotatingWord } from "@/components/landing/RotatingWord";
-import { ScanForm } from "@/components/landing/ScanForm";
 import { ScanWidget } from "@/components/landing/ScanWidget";
 import { ScrollStage } from "@/components/landing/ScrollStage";
 import { SupportedTools } from "@/components/landing/SupportedTools";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 
-const TITLE = "Hierophant: see what a repo will make your AI agent do";
+const TITLE = "Hierophant: check what you add to your AI agent";
 const DESCRIPTION =
-  "Paste a public GitHub repo and see what its hooks, rules, MCP servers, and auto-run tasks would make your AI coding agent do, before you click Trust.";
+  "Check repos, packages, MCP servers, agent skills, and token metadata before your AI coding agent trusts them. Nothing is installed or executed.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -38,17 +38,17 @@ function Hero() {
       <div className="max-w-[640px] lg:max-w-[min(590px,50vw)]">
         <p className="flex items-center gap-2 font-mono text-xs text-muted">
           <span aria-hidden="true" className="size-1.5 rounded-full bg-dot" />
-          Open Impact reports for AI coding agents
+          Pre-trust checks for AI coding agents
         </p>
         <h1 className="mt-4 text-[2.15rem] leading-[1.08] font-medium tracking-[-0.03em] sm:text-5xl lg:text-[clamp(2.5rem,3.45vw,3.1rem)]">
-          See what a repo will make your AI agent do, before you click Trust.
+          Check what you add to your AI agent, before you click Trust.
         </h1>
         <RotatingWord />
-        <p className="mt-3 max-w-xl text-sm leading-6 text-muted sm:text-base sm:leading-7">
-          Hierophant inspects a repo&apos;s hooks, rules, and MCP servers, then shows the impact on
-          each agent you use.
+        <p className="mt-3 hidden max-w-xl text-base leading-7 text-muted sm:block">
+          Hierophant inspects what you are about to add, then shows what could run or steer your
+          agent.
         </p>
-        <ScanForm />
+        <CheckPanel className="mt-4" />
       </div>
     </div>
   );

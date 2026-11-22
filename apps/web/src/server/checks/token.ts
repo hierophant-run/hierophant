@@ -35,6 +35,7 @@ const RPC_URLS: Record<TokenChain, readonly string[]> = {
     "https://bsc-dataseed.bnbchain.org",
     "https://bsc.drpc.org",
   ],
+  robinhood: ["https://robinhood.drpc.org", "https://robinhood-rpc.publicnode.com"],
   solana: [
     "https://solana-mainnet.gateway.tatum.io",
     "https://solana-rpc.publicnode.com",

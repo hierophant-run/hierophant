@@ -50,7 +50,8 @@ export default function ChecksPage() {
         be sold. A token with no injection found can still be a scam. Off-chain metadata is never
         fetched.
       </p>
-      <p>Supported chains: Ethereum, Base, Arbitrum, Optimism, Polygon, BNB Chain, and Solana.</p>
+      <p>Supported chains: Ethereum, Base, Arbitrum, Optimism, Polygon, BNB Chain, Robinhood Chain, and
+        Solana.</p>
 
       <h2>Results and badges</h2>
       <p>

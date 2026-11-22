@@ -10,7 +10,7 @@ export default function ReportNotFound() {
         This link is wrong, or the report no longer exists. You can scan the repository again.
       </p>
       <div className="mt-6">
-        <Button href="/#scan-url">Scan a repo</Button>
+        <Button href="/#check-repo">Start a check</Button>
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 import { Logo } from "@/components/brand/Logo";
+import { CHECK_TABS, checkTabHash } from "@/lib/check-tabs";
 import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
 import { FooterWordmark } from "./FooterWordmark";
 import { ScanLink } from "./ScanLink";
@@ -12,7 +13,7 @@ export function Footer() {
         <div className="col-span-2 md:col-span-1">
           <Logo size={32} />
           <p className="mt-4 max-w-xs text-sm leading-6 text-muted">
-            Hierophant. Reveals what your repo is hiding.
+            Hierophant. Reveals what your agent is about to trust.
           </p>
         </div>
 
@@ -21,24 +22,16 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5">
             <li>
               <ScanLink plain className={linkClass}>
-                Scan a repo
+                Start a check
               </ScanLink>
             </li>
-            <li>
-              <a href={siteHref("/check")} className={linkClass}>
-                Check packages and tokens
-              </a>
-            </li>
-            <li>
-              <a href={siteHref("/#how-it-works")} className={linkClass}>
-                How it works
-              </a>
-            </li>
-            <li>
-              <a href={siteHref("/#rules")} className={linkClass}>
-                Supported tools
-              </a>
-            </li>
+            {CHECK_TABS.map((tab) => (
+              <li key={tab.id}>
+                <a href={siteHref(`/${checkTabHash(tab.id)}`)} className={linkClass}>
+                  {tab.footerLabel}
+                </a>
+              </li>
+            ))}
           </ul>
         </nav>
 
@@ -51,8 +44,18 @@ export function Footer() {
               </a>
             </li>
             <li>
+              <a href={siteHref("/#how-it-works")} className={linkClass}>
+                How it works
+              </a>
+            </li>
+            <li>
               <a href={docsHref("/rules")} className={linkClass}>
                 Rule catalog
+              </a>
+            </li>
+            <li>
+              <a href={siteHref("/#rules")} className={linkClass}>
+                Supported tools
               </a>
             </li>
             <li>

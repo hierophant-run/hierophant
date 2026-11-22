@@ -5,17 +5,17 @@ const STEPS = [
   {
     number: "01",
     title: "Paste",
-    body: "Drop in the URL of a public GitHub repository. No install and no sign-up.",
+    body: "Drop in a repo, package, MCP server, skill, or token. No install and no sign-up.",
   },
   {
     number: "02",
     title: "Inspect",
-    body: "Hierophant reads agent files and the scripts they launch. Nothing is cloned or executed.",
+    body: "Hierophant reads public files and metadata as text. Nothing is cloned or executed.",
   },
   {
     number: "03",
     title: "Fix",
-    body: "See the impact on each agent, the exact lines, and what to change before you trust it.",
+    body: "See what it could do to your agent, the evidence, and what to change before you trust it.",
   },
 ];
 

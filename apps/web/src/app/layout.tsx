@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const DESCRIPTION =
-  "See what a repo will make your AI coding agent do, before you click Trust. Hierophant reads hooks, rules, and MCP files without running them.";
+  "Check repos, packages, MCP servers, agent skills, and token metadata before your AI coding agent trusts them. Nothing is installed or executed.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

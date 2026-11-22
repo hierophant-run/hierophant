@@ -21,7 +21,7 @@ export default function QuickstartPage() {
       <ol>
         <li>
           Paste a URL like <code>https://github.com/owner/repo</code> into the{" "}
-          <Link href={siteHref("/#scan-url")}>scan form</Link>.
+          <Link href={siteHref("/#check-repo")}>scan form</Link>.
         </li>
         <li>Read the verdict and the Open Impact table for the agents you use.</li>
         <li>Open each finding. It shows the file, the line, why it matters, and how to fix it.</li>

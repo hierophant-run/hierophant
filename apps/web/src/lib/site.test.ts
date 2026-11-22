@@ -23,6 +23,6 @@ describe("site links", () => {
     const { docsHref, siteHref } = await load("https://docs.hierophanthq.com/");
     expect(docsHref()).toBe("https://docs.hierophanthq.com/");
     expect(docsHref("/rules")).toBe("https://docs.hierophanthq.com/rules");
-    expect(siteHref("/#scan-url")).toBe("https://hierophanthq.com/#scan-url");
+    expect(siteHref("/#check-repo")).toBe("https://hierophanthq.com/#check-repo");
   });
 });

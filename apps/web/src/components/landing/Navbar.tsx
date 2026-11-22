@@ -1,8 +1,28 @@
 import { Logo } from "@/components/brand/Logo";
+import { CHECK_TABS, checkTabHash } from "@/lib/check-tabs";
 import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
 import { ScanLink } from "./ScanLink";
 
 const linkClass = "text-sm text-muted transition-colors hover:text-text";
+const mobileLinkClass = `${linkClass} px-2 py-2.5`;
+
+function NavLinks({ className }: { className: string }) {
+  return (
+    <>
+      {CHECK_TABS.map((tab) => (
+        <a key={tab.id} href={siteHref(`/${checkTabHash(tab.id)}`)} className={className}>
+          {tab.navLabel}
+        </a>
+      ))}
+      <a href={docsHref()} className={className}>
+        Docs
+      </a>
+      <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={className}>
+        GitHub
+      </a>
+    </>
+  );
+}
 
 export function Navbar() {
   return (
@@ -12,27 +32,16 @@ export function Navbar() {
           <Logo size={30} />
         </a>
 
-        <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
-          <a href={siteHref("/#how-it-works")} className={linkClass}>
-            How it works
-          </a>
-          <a href={siteHref("/#rules")} className={linkClass}>
-            Rules
-          </a>
-          <a href={siteHref("/check")} className={linkClass}>
-            Check
-          </a>
-          <a href={docsHref()} className={linkClass}>
-            Docs
-          </a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
-            GitHub
-          </a>
+        <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
+          <NavLinks className={linkClass} />
         </nav>
 
         <div className="flex items-center gap-2">
-          <ScanLink className="min-h-10 px-3.5 sm:px-4">Scan a repo</ScanLink>
-          <details className="relative md:hidden">
+          <ScanLink className="min-h-10 px-3.5 max-[379px]:px-2.5 sm:px-4">
+            <span className="max-[379px]:hidden">Start a check</span>
+            <span className="min-[380px]:hidden">Check</span>
+          </ScanLink>
+          <details className="relative lg:hidden">
             <summary
               aria-label="Open menu"
               className="flex size-10 cursor-pointer list-none items-center justify-center rounded-[3px] border border-line text-text [&::-webkit-details-marker]:hidden"
@@ -54,26 +63,7 @@ export function Navbar() {
               aria-label="Mobile"
               className="absolute top-12 right-0 flex w-48 flex-col border border-line bg-surface p-2"
             >
-              <a href={siteHref("/#how-it-works")} className={`${linkClass} px-2 py-2.5`}>
-                How it works
-              </a>
-              <a href={siteHref("/#rules")} className={`${linkClass} px-2 py-2.5`}>
-                Rules
-              </a>
-              <a href={siteHref("/check")} className={`${linkClass} px-2 py-2.5`}>
-                Check
-              </a>
-              <a href={docsHref()} className={`${linkClass} px-2 py-2.5`}>
-                Docs
-              </a>
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noreferrer noopener"
-                className={`${linkClass} px-2 py-2.5`}
-              >
-                GitHub
-              </a>
+              <NavLinks className={mobileLinkClass} />
             </nav>
           </details>
         </div>

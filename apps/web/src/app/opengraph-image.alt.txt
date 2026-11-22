@@ -1,1 +1,1 @@
-Hierophant: see what a repo will make your AI agent do, before you click Trust.
+Hierophant: check what you add to your AI agent, before you click Trust.

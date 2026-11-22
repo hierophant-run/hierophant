@@ -11,6 +11,12 @@ export const TOKEN_CHAINS = {
   },
   polygon: { label: "Polygon", family: "evm", explorer: "https://polygonscan.com/token/" },
   bsc: { label: "BNB Chain", family: "evm", explorer: "https://bscscan.com/token/" },
+  robinhood: {
+    label: "Robinhood Chain",
+    menuLabel: "Robinhood",
+    family: "evm",
+    explorer: "https://robinhoodchain.blockscout.com/token/",
+  },
   solana: { label: "Solana", family: "solana", explorer: "https://solscan.io/token/" },
 } as const;
 

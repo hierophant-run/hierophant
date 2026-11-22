@@ -71,7 +71,7 @@ export default function DesignPage() {
       <Section title="Typography">
         <div className="space-y-5">
           <p className="text-4xl leading-tight font-medium tracking-tight sm:text-6xl">
-            Reveal what your repo is hiding.
+            Reveal what your agent is about to trust.
           </p>
           <p className="text-2xl font-medium tracking-tight">Section heading in Geist</p>
           <p className="max-w-2xl text-base leading-relaxed text-muted">
@@ -108,7 +108,7 @@ export default function DesignPage() {
 
       <Section title="Buttons">
         <div className="flex flex-wrap gap-3">
-          <Button>Scan a repo</Button>
+          <Button>Start a check</Button>
           <Button variant="secondary">How it works</Button>
           <Button href="/design">Link button</Button>
           <Button disabled>Disabled</Button>

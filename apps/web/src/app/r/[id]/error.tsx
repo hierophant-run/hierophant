@@ -15,8 +15,8 @@ export default function ReportError({ retry }: { error: unknown; retry: () => vo
       </p>
       <div className="mt-6 flex flex-wrap gap-2">
         <Button onClick={() => retry()}>Try again</Button>
-        <Button href="/#scan-url" variant="secondary">
-          Scan a repo
+        <Button href="/#check-repo" variant="secondary">
+          Start a check
         </Button>
       </div>
     </section>
