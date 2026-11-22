@@ -5,7 +5,7 @@ import type { Database } from "./db/types";
 import { ApiError } from "./errors";
 import type { ScanDeps } from "./http";
 import { errorName, logError } from "./log";
-import { FEEDBACK_LIMITS, RateLimiter } from "./rate-limit";
+import { CHECK_LIMITS, FEEDBACK_LIMITS, RateLimiter } from "./rate-limit";
 import { ReportStore } from "./report-store";
 
 type Shared = {
@@ -13,6 +13,7 @@ type Shared = {
   store: ReportStore;
   limiter: RateLimiter;
   feedbackLimiter: RateLimiter;
+  checkLimiter: RateLimiter;
 };
 
 const globalCache = globalThis as typeof globalThis & { __hierophantDb?: Shared };
@@ -49,6 +50,7 @@ function createShared(databaseUrl: string): Shared {
     store: new ReportStore(db),
     limiter: new RateLimiter(db, databaseUrl),
     feedbackLimiter: new RateLimiter(db, databaseUrl, FEEDBACK_LIMITS),
+    checkLimiter: new RateLimiter(db, databaseUrl, CHECK_LIMITS),
   };
 }
 
@@ -62,7 +64,7 @@ export function getDeps(): ScanDeps {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new ApiError("service_unavailable");
 
-  const { store, limiter, feedbackLimiter } = shared(databaseUrl);
+  const { store, limiter, feedbackLimiter, checkLimiter } = shared(databaseUrl);
   const githubToken = process.env.GITHUB_TOKEN;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
@@ -71,6 +73,7 @@ export function getDeps(): ScanDeps {
     store,
     limiter,
     feedbackLimiter,
+    checkLimiter,
     fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
     ...(githubToken ? { githubToken } : {}),
     ...(siteUrl ? { siteUrl } : {}),

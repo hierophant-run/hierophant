@@ -21,6 +21,7 @@ export type ScanDeps = {
   store: ReportStore;
   limiter: RateLimiter;
   feedbackLimiter?: RateLimiter;
+  checkLimiter?: RateLimiter;
   fetch: FetchLike;
   githubToken?: string;
   turnstileSecret?: string;
@@ -139,7 +140,7 @@ async function readBody(request: Request, maxBytes = MAX_BODY_BYTES): Promise<un
   }
 }
 
-export function clientIp(request: Request): string {
+export function clientIp(request: { headers: { get(name: string): string | null } }): string {
   // Behind Cloudflare, other forwarding headers can be set by the visitor.
   const candidate =
     process.env.DEPLOY_TARGET === "cloudflare"

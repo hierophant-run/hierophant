@@ -25,6 +25,11 @@ export function Footer() {
               </ScanLink>
             </li>
             <li>
+              <a href={siteHref("/check")} className={linkClass}>
+                Check packages and tokens
+              </a>
+            </li>
+            <li>
               <a href={siteHref("/#how-it-works")} className={linkClass}>
                 How it works
               </a>

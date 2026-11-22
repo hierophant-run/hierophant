@@ -19,6 +19,9 @@ export function Navbar() {
           <a href={siteHref("/#rules")} className={linkClass}>
             Rules
           </a>
+          <a href={siteHref("/check")} className={linkClass}>
+            Check
+          </a>
           <a href={docsHref()} className={linkClass}>
             Docs
           </a>
@@ -56,6 +59,9 @@ export function Navbar() {
               </a>
               <a href={siteHref("/#rules")} className={`${linkClass} px-2 py-2.5`}>
                 Rules
+              </a>
+              <a href={siteHref("/check")} className={`${linkClass} px-2 py-2.5`}>
+                Check
               </a>
               <a href={docsHref()} className={`${linkClass} px-2 py-2.5`}>
                 Docs

@@ -36,11 +36,11 @@ const escapeXml = (value: string) =>
 
 const widthOf = (text: string) => Math.ceil(text.length * CHAR_WIDTH) + PADDING;
 
-function drawBadge(message: string, fill: string, href?: string): string {
-  const labelWidth = widthOf(LABEL);
+function drawBadge(message: string, fill: string, href?: string, label: string = LABEL): string {
+  const labelWidth = widthOf(label);
   const messageWidth = widthOf(message);
   const width = labelWidth + messageWidth;
-  const title = escapeXml(`${LABEL}: ${message}`);
+  const title = escapeXml(`${label}: ${message}`);
   const text = (value: string, x: number, color: string, length: number) =>
     `<text x="${x}" y="14" fill="${color}" textLength="${length}" lengthAdjust="spacingAndGlyphs">${escapeXml(value)}</text>`;
 
@@ -48,7 +48,7 @@ function drawBadge(message: string, fill: string, href?: string): string {
     `<rect width="${labelWidth}" height="${HEIGHT}" fill="#0B2024"/>`,
     `<rect x="${labelWidth}" width="${messageWidth}" height="${HEIGHT}" fill="${fill}"/>`,
     `<g font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">`,
-    text(LABEL, PADDING / 2, "#F2EFE4", labelWidth - PADDING),
+    text(label, PADDING / 2, "#F2EFE4", labelWidth - PADDING),
     text(message, labelWidth + PADDING / 2, "#0A1E22", messageWidth - PADDING),
     `</g>`,
   ].join("");
@@ -70,6 +70,26 @@ export function renderBadge(report: {
   const { label, fill } = STATUS[report.status];
   const message = `${label} · v${report.rulesetVersion} · ${report.commitSha.slice(0, 7)}`;
   return drawBadge(message, fill, report.reportUrl);
+}
+
+/** Token badges say what they cover, so they cannot be read as a safety rating. */
+export function renderCheckBadge(options: {
+  kind: string;
+  message: string;
+  httpStatus: number;
+  status?: ScanStatus;
+  href?: string;
+  maxAge?: number;
+}): Response {
+  const fill = options.status ? STATUS[options.status].fill : "#A9BBB6";
+  const label = options.kind === "token" ? "Token metadata" : LABEL;
+  return new Response(drawBadge(options.message, fill, options.href, label), {
+    status: options.httpStatus,
+    headers: {
+      ...BADGE_HEADERS,
+      "Cache-Control": options.maxAge ? `public, max-age=${options.maxAge}` : "no-store",
+    },
+  });
 }
 
 export const badgeAlt = (status: ScanStatus, rulesetVersion: string) =>

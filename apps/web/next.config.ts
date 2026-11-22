@@ -85,11 +85,15 @@ const nextConfig: NextConfig = {
           ]),
       { source: "/((?!api/).*)", headers: BASE_HEADERS },
       {
-        source: "/((?!api/|r/).*)",
+        source: "/((?!api/|r/|check/).*)",
         headers: [{ key: "Content-Security-Policy", value: STATIC_PAGE_POLICY }],
       },
       {
         source: "/r/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/check/:path+",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
     ];

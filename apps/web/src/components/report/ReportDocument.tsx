@@ -430,7 +430,7 @@ export function ReportDocument({ report }: { report: ReportView }) {
           The badge shows this status, ruleset, and commit, and links to this report.
         </p>
         <BadgeSnippet
-          reportId={report.id}
+          badgeSrc={`/api/badge/${report.id}`}
           markdown={badgeMarkdown(report.id)}
           alt={badgeAlt(report.status, report.rulesetVersion)}
         />

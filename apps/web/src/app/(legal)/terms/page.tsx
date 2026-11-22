@@ -30,6 +30,13 @@ export default function TermsPage() {
         <Link href={docsHref("/limitations")}>limitations</Link>.
       </p>
 
+      <h2>Token checks are not financial advice</h2>
+      <p>
+        Token checks only read on-chain text for instructions aimed at AI agents. They are not a
+        safety rating, audit, endorsement, or investment advice. Do not use a result or badge to
+        promote a token or to suggest that it is safe to buy.
+      </p>
+
       <h2>Acceptable use</h2>
       <p>You agree not to:</p>
       <ul>
@@ -38,6 +45,7 @@ export default function TermsPage() {
         <li>Present a report as proof that a project or person is malicious.</li>
         <li>Alter a report or badge, or display a badge for a different repository or commit.</li>
         <li>Use the service to find targets for attacks.</li>
+        <li>Use a Hierophant result or badge to market a token or investment.</li>
       </ul>
 
       <h2>Reports about third-party repositories</h2>

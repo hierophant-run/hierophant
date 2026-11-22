@@ -8,6 +8,7 @@ const LINKS = [
   { path: "", label: "Quickstart" },
   { path: "/how-it-works", label: "How it works" },
   { path: "/rules", label: "Rule catalog" },
+  { path: "/checks", label: "Checks" },
   { path: "/limitations", label: "Limitations" },
   { path: "/false-positives", label: "False positives" },
 ];

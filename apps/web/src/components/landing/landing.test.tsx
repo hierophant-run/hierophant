@@ -243,6 +243,7 @@ describe("landing copy", () => {
       "/privacy",
       "/terms",
       "/report-policy",
+      "/check",
       "https://github.com/hierophant-run/hierophant",
     ];
     expect(hrefs.every((href) => href?.startsWith("/#") || pages.includes(href ?? ""))).toBe(true);

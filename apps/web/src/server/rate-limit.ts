@@ -16,6 +16,12 @@ export const FEEDBACK_LIMITS: readonly Limit[] = [
   { scope: "ip", name: "feedback-hour", windowSeconds: 3600, max: 40 },
 ];
 
+export const CHECK_LIMITS: readonly Limit[] = [
+  { scope: "ip", name: "check-minute", windowSeconds: 60, max: 20 },
+  { scope: "ip", name: "check-hour", windowSeconds: 3600, max: 120 },
+  { scope: "global", name: "check-global-hour", windowSeconds: 3600, max: 1500 },
+];
+
 const CLEANUP_CHANCE = 0.01;
 const RETENTION_MS = 2 * 60 * 60 * 1000;
 
