@@ -35,7 +35,6 @@ export async function loadCheck(
   target: CheckTarget,
   request: { headers: { get(name: string): string | null } },
   deps: ScanDeps,
-  options: { includeTokenData?: boolean } = {},
 ): Promise<CheckResult> {
   const limiter = deps.checkLimiter ?? deps.limiter;
   const limit = await guardDatabase(() => limiter.consume(clientIp(request)));
@@ -46,7 +45,6 @@ export async function loadCheck(
     return await runCheck(target, {
       fetch: budget ? budget.wrap(deps.fetch) : deps.fetch,
       ...(deps.githubToken ? { githubToken: deps.githubToken } : {}),
-      ...(options.includeTokenData ? { includeTokenData: true } : {}),
     });
   } catch (error) {
     if (error instanceof ApiError) throw error;

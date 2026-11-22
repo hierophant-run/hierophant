@@ -15,7 +15,6 @@ import {
   type CheckResult,
   type CheckSignal,
 } from "./common";
-import { readTokenData, tokenDataRows } from "./token-data";
 
 /** Free endpoints often rate-limit shared cloud IPs, so each chain has several providers. */
 const RPC_URLS: Record<TokenChain, readonly string[]> = {
@@ -494,12 +493,10 @@ export async function runTokenCheck(
   const chain = TOKEN_CHAINS[target.chain];
   const uriLabel = chain.family === "evm" ? "Contract URI" : "Metadata URI";
   const fieldByLine = ["Token name", "Token symbol", uriLabel];
-  const [token, tokenData] = await Promise.all([
+  const token =
     chain.family === "evm"
-      ? readEvmToken(context.fetch, target.chain, target.address)
-      : readSolanaToken(context.fetch, target.address),
-    context.includeTokenData ? readTokenData(context.fetch, target.chain, target.address) : null,
-  ]);
+      ? await readEvmToken(context.fetch, target.chain, target.address)
+      : await readSolanaToken(context.fetch, target.address);
 
   const lines = [token.name, token.symbol, token.uri].map((value) => value.replace(/\r?\n/g, " "));
   const findings = scan([{ path: "CLAUDE.md", content: lines.join("\n") }]).findings.filter(
@@ -553,7 +550,6 @@ export async function runTokenCheck(
         label,
         isFound: findings.some((finding) => rules.includes(finding.ruleId)),
       })),
-      market: tokenData ? tokenDataRows(tokenData) : null,
     },
   });
 }

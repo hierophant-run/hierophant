@@ -38,15 +38,54 @@ describe("CheckDocument", () => {
           tokenDetails: {
             text: [{ label: "Name", value: "Example Token" }],
             inspections: [{ label: "Hidden characters", isFound: false }],
-            market: [{ label: "Holders", value: "1,234", note: "Reported by GeckoTerminal." }],
           },
         })}
       />,
     );
     expect(screen.getByRole("heading", { name: "What was read" })).toBeTruthy();
     expect(screen.getByText("None found")).toBeTruthy();
-    expect(screen.getByText("1,234")).toBeTruthy();
     expect(screen.getByText(/not a safety rating or buy\s+signal/)).toBeTruthy();
+  });
+
+  it("loads market data only after the visitor asks", async () => {
+    const fetchSpy = vi.fn(async (url: string) =>
+      url.includes("dexscreener")
+        ? new Response("[]")
+        : new Response(JSON.stringify({ data: { attributes: { holders: { count: 1234 } } } })),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<CheckDocument result={result()} />);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(screen.getByText(/receive\s+your IP address and this token address/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load public token data" }));
+    expect(await screen.findByText("1,234")).toBeTruthy();
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("No pools found")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("offers a retry when a market source fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 429 })),
+    );
+    render(<CheckDocument result={result()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Load public token data" }));
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeTruthy();
+    expect(screen.getByText(/Some figures could not be loaded/)).toBeTruthy();
+    expect(screen.getByText("No injection found")).toBeTruthy();
+    vi.unstubAllGlobals();
+  });
+
+  it("does not show market data on other checks", () => {
+    render(
+      <CheckDocument
+        result={result({ target: { kind: "npm", name: "left-pad", requested: null } })}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Load public token data" })).toBeNull();
   });
 
   it("renders hostile remote text as plain text", () => {

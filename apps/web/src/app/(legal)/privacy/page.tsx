@@ -61,9 +61,17 @@ export default function PrivacyPage() {
       <h2>Package, MCP, skill, and token checks</h2>
       <p>
         When you use the check page, our server sends what you entered to the matching public
-        source: npm, PyPI, OSV, the MCP Registry, GitHub, public blockchain RPC providers,
-        DexScreener, or GeckoTerminal. These results are computed on request and are not stored.
-        Badges can be cached by Cloudflare for up to an hour.
+        source: npm, PyPI, OSV, the MCP Registry, GitHub, or public blockchain RPC providers. These
+        results are computed on request and are not stored. Badges can be cached by Cloudflare for
+        up to an hour.
+      </p>
+
+      <h2>Public token data</h2>
+      <p>
+        Token result pages have an optional button that loads holder and liquidity figures. Nothing
+        is sent until you click it. When you do, your browser connects directly to DexScreener and
+        GeckoTerminal. They receive your IP address, browser details, and the token address, and
+        handle them under their own privacy policies. We do not receive or store these figures.
       </p>
 
       <h2>Bot protection</h2>
@@ -98,8 +106,12 @@ export default function PrivacyPage() {
         <li>GitHub, which our server contacts to read public repository data.</li>
         <li>OSV, npm, and PyPI, which our server asks about public packages.</li>
         <li>
-          The MCP Registry, public blockchain RPC providers such as PublicNode, dRPC, and Tatum,
-          DexScreener, and GeckoTerminal, which provide data for the check page.
+          The MCP Registry and public blockchain RPC providers, such as PublicNode, dRPC, and Tatum,
+          which provide data for the check page.
+        </li>
+        <li>
+          DexScreener and GeckoTerminal, which your browser contacts only if you load public token
+          data.
         </li>
       </ul>
       <p>These providers may process data in countries other than your own.</p>

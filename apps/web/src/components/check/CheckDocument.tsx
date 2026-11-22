@@ -5,7 +5,9 @@ import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { cn } from "@/lib/cn";
 import { checkBadgeMarkdown, checkBadgePath, type CheckResult } from "@/server/checks";
-import type { CheckDetail, CheckInspection, CheckSignal } from "@/server/checks/common";
+import type { CheckInspection, CheckSignal } from "@/server/checks/common";
+import { DetailRows } from "./DetailRows";
+import { TokenMarketData } from "./TokenMarketData";
 
 const STATUS_COLORS: Record<ScanStatus, string> = {
   dangerous: "text-danger",
@@ -72,25 +74,6 @@ function ScopeList({ title, items }: { title: string; items: string[] }) {
         ))}
       </ul>
     </div>
-  );
-}
-
-function DetailRows({ rows }: { rows: CheckDetail[] }) {
-  return (
-    <dl className="mt-6 border-t border-line">
-      {rows.map((row) => (
-        <div
-          key={row.label}
-          className="grid grid-cols-1 gap-1 border-b border-line py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-6"
-        >
-          <dt className="text-sm text-muted">{row.label}</dt>
-          <dd className="min-w-0">
-            <span className="font-mono text-sm break-all">{row.value}</span>
-            {row.note ? <p className="mt-1 text-xs leading-5 text-muted">{row.note}</p> : null}
-          </dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 
@@ -202,19 +185,8 @@ export function CheckDocument({ result }: { result: CheckResult }) {
         )}
       </section>
 
-      {details?.market ? (
-        <section aria-labelledby="market-title" className="mt-14">
-          <Eyebrow>Context</Eyebrow>
-          <h2 id="market-title" className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl">
-            Public token data
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            Reported by third parties and cached for up to 15 minutes. These figures can be wrong or
-            manipulated. They do not affect the result above and are not a safety rating or buy
-            signal.
-          </p>
-          <DetailRows rows={details.market} />
-        </section>
+      {result.target.kind === "token" ? (
+        <TokenMarketData chain={result.target.chain} address={result.target.address} />
       ) : null}
 
       <section aria-labelledby="scope-title" className="mt-14">

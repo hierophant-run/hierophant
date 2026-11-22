@@ -46,9 +46,10 @@ export default function ChecksPage() {
         for hidden characters or instructions aimed at AI agents.
       </p>
       <p>
-        Result pages also show holder and DEX liquidity figures from GeckoTerminal and DexScreener.
-        These figures are context only. They can be wrong or manipulated, and they do not affect
-        the result.
+        Result pages have an optional button that loads holder and DEX liquidity figures from
+        GeckoTerminal and DexScreener. Your browser contacts those services directly, so they
+        receive your IP address and the token address. These figures are context only. They can be
+        wrong or manipulated, and they do not affect the result.
       </p>
       <p>
         It does not check the contract, ownership, price, whether liquidity is real or locked, or

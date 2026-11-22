@@ -402,7 +402,6 @@ describe("token checks", () => {
       "Contract URI": "ipfs://example/contract.json",
     });
     expect(result.tokenDetails?.inspections.every((item) => !item.isFound)).toBe(true);
-    expect(result.tokenDetails?.market).toBeNull();
   });
 
   it("flags instructions in a contract URI without opening it", async () => {
@@ -443,83 +442,14 @@ describe("token checks", () => {
     );
   });
 
-  describe("public token data", () => {
-    const address = evm.kind === "token" ? evm.address : "";
-    const pool = (usd: number | null, createdAt: number, overrides = {}) => ({
-      chainId: "base",
-      baseToken: { address: address.toUpperCase().replace("0X", "0x") },
-      quoteToken: { address: `0x${"c".repeat(40)}` },
-      ...(usd === null ? {} : { liquidity: { usd } }),
-      pairCreatedAt: createdAt,
-      ...overrides,
+  it("does not contact market data sources from the server", async () => {
+    const urls: string[] = [];
+    const answer = evmFetch("Example");
+    await check(evm, async (url, init) => {
+      urls.push(url);
+      return answer(url, init);
     });
-    const withData =
-      (pools: unknown, holdersBody: unknown, poolStatus = 200, holderStatus = 200): FetchLike =>
-      async (url, init) => {
-        if (url.includes("dexscreener")) return json(pools, poolStatus);
-        if (url.includes("geckoterminal")) return json(holdersBody, holderStatus);
-        return evmFetch("Example Token")(url, init);
-      };
-    const rowsOf = (result: Awaited<ReturnType<typeof check>>) =>
-      Object.fromEntries((result.tokenDetails?.market ?? []).map((row) => [row.label, row.value]));
-    const withMarket = (fetchImpl: FetchLike) =>
-      runCheck(evm, { fetch: fetchImpl, includeTokenData: true });
-
-    it("adds matching pools and holders without changing the result", async () => {
-      const result = await withMarket(
-        withData(
-          [
-            pool(1000.4, Date.UTC(2024, 0, 2)),
-            pool(500, Date.UTC(2023, 5, 1)),
-            pool(99999, Date.UTC(2020, 0, 1), { chainId: "ethereum" }),
-            pool(99999, Date.UTC(2020, 0, 1), {
-              baseToken: { address: `0x${"d".repeat(40)}` },
-            }),
-          ],
-          { data: { attributes: { holders: { count: 1234 } } } },
-        ),
-      );
-      expect(rowsOf(result)).toEqual({
-        Holders: "1,234",
-        "DEX liquidity": "$1,500",
-        "DEX pools": "2",
-        "First pool seen": "Jun 1, 2023",
-      });
-      expect(result.status).toBe("no_issues_found");
-      expect(JSON.stringify(result)).not.toMatch(/\b(?:safe to|is safe|legit|low risk)\b/i);
-    });
-
-    it("keeps the check working when both sources fail", async () => {
-      const result = await withMarket(withData({}, {}, 429, 429));
-      expect(result.name).toBe("Example Token (TKN)");
-      expect(rowsOf(result)).toMatchObject({
-        Holders: "Not available",
-        "DEX liquidity": "Not available",
-      });
-    });
-
-    it("rejects malformed figures", async () => {
-      const result = await withMarket(
-        withData([pool(-5, Number.NaN), pool(Number.POSITIVE_INFINITY, 12)], {
-          data: { attributes: { holders: { count: "many" } } },
-        }),
-      );
-      expect(rowsOf(result)).toMatchObject({
-        Holders: "Not available",
-        "DEX liquidity": "Not reported",
-        "First pool seen": "Not available",
-      });
-    });
-
-    it("does not contact market sources for badges", async () => {
-      const urls: string[] = [];
-      const answer = evmFetch("Example");
-      await check(evm, async (url, init) => {
-        urls.push(url);
-        return answer(url, init);
-      });
-      expect(urls.some((url) => /dexscreener|geckoterminal/.test(url))).toBe(false);
-    });
+    expect(urls.some((url) => /dexscreener|geckoterminal/.test(url))).toBe(false);
   });
 
   it("decodes ABI strings and rejects malformed data", () => {

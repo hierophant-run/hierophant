@@ -18,7 +18,6 @@ export type CheckInspection = { label: string; isFound: boolean };
 export type TokenDetails = {
   text: CheckDetail[];
   inspections: CheckInspection[];
-  market: CheckDetail[] | null;
 };
 
 export type CheckResult = {
@@ -38,12 +37,7 @@ export type CheckResult = {
   tokenDetails?: TokenDetails;
 };
 
-export type CheckContext = {
-  fetch: FetchLike;
-  githubToken?: string;
-  /** Badges skip these figures so that embedded images do not load third-party sources. */
-  includeTokenData?: boolean;
-};
+export type CheckContext = { fetch: FetchLike; githubToken?: string };
 
 const RANK: Record<CheckSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
 const STATUS_LABELS: Record<ScanStatus, string> = {
