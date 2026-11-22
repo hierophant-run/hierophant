@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hierophant",
+  "account_id": "623693bd9e26d8a4f91459bd23b37b8a",
+  "main": "cloudflare-worker.mjs",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "hierophant" }],
+  "routes": [
+    { "pattern": "hierophanthq.com", "custom_domain": true },
+    { "pattern": "www.hierophanthq.com", "custom_domain": true },
+    { "pattern": "docs.hierophanthq.com", "custom_domain": true },
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true },
+  // GITHUB_TOKEN and DATABASE_URL are Cloudflare Secrets and must never be added here.
+  // Workers Free allows 50 outbound requests per visit. Remove the limit on a paid plan.
+  "vars": { "DEPLOY_TARGET": "cloudflare", "SCAN_SUBREQUEST_LIMIT": "45" },
+}

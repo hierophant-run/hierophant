@@ -1,0 +1,36 @@
+{
+  "name": "@hierophant/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "hierophant": "dist/cli.cjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=cjs --main-fields=module,main --legal-comments=none --banner:js=#!/usr/bin/env\\ node --outfile=dist/cli.cjs --log-level=warning",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hierophant/engine": "workspace:*",
+    "@hierophant/intel": "workspace:*",
+    "@hierophant/local": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "jsonc-parser": "^3.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+dist
+!packages/action/dist/
+.research/
+.open-next
+.wrangler
+.dev.vars
+coverage
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.env
+.env.*
+!.env.example
+*.mov

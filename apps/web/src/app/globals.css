@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #061519;
+  --surface: #0b2024;
+  --line: #1c3a3d;
+  --text: #f2efe4;
+  --muted: #a9bbb6;
+  --accent: #f4e9cd;
+  --dot: #f6d98b;
+  --danger: #ff6b3d;
+  --on-accent: #0a1e22;
+  --dot-on-light: #b45309;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-dot: var(--dot);
+  --color-danger: var(--danger);
+  --color-on-accent: var(--on-accent);
+  --color-dot-on-light: var(--dot-on-light);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
+@layer base {
+  html {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--dot);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

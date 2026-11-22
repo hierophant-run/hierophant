@@ -1,0 +1,21 @@
+name: Hierophant Check
+description: Check agent hooks, rules, and MCP files in a checkout without executing them.
+inputs:
+  path:
+    description: Folder to check, relative to the workspace.
+    required: false
+    default: "."
+  fail-on:
+    description: Lowest severity that fails the step. One of critical, high, medium, low, or none.
+    required: false
+    default: high
+outputs:
+  status:
+    description: One of dangerous, needs_review, or no_issues_found.
+  findings:
+    description: Number of findings.
+  ruleset-version:
+    description: Version of the ruleset that produced this result.
+runs:
+  using: node24
+  main: dist/index.cjs

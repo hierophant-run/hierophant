@@ -1,0 +1,24 @@
+{
+  "name": "hierophant",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @hierophant/engine --filter @hierophant/intel build && pnpm --filter @hierophant/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm --filter @hierophant/engine --filter @hierophant/local --filter @hierophant/intel build && pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @hierophant/web db:generate",
+    "db:migrate": "pnpm --filter @hierophant/web db:migrate",
+    "hierophant": "node packages/cli/dist/cli.cjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3"
+  }
+}
