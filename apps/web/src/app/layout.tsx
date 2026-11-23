@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { ReactNode } from "react";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, X_HANDLE } from "@/lib/site";
 import "./globals.css";
 
 const DESCRIPTION =
@@ -17,7 +17,12 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: "Hierophant",
   openGraph: { siteName: "Hierophant", type: "website", description: DESCRIPTION },
-  twitter: { card: "summary_large_image", description: DESCRIPTION },
+  twitter: {
+    card: "summary_large_image",
+    site: X_HANDLE,
+    creator: X_HANDLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

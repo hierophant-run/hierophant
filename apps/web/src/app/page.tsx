@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CheckPanel } from "@/components/check/CheckPanel";
+import { CliInstall } from "@/components/landing/CliInstall";
 import { Footer } from "@/components/landing/Footer";
 import { HowItWorks, WhatWeDontClaim } from "@/components/landing/InfoSections";
 import "@/components/landing/landing.css";
@@ -11,6 +12,7 @@ import { ScanWidget } from "@/components/landing/ScanWidget";
 import { ScrollStage } from "@/components/landing/ScrollStage";
 import { SupportedTools } from "@/components/landing/SupportedTools";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { X_HANDLE } from "@/lib/site";
 
 const TITLE = "Hierophant: check what you add to your AI agent";
 const DESCRIPTION =
@@ -21,7 +23,13 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: { title: TITLE, description: DESCRIPTION, type: "website", siteName: "Hierophant" },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  twitter: {
+    card: "summary_large_image",
+    site: X_HANDLE,
+    creator: X_HANDLE,
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 const NO_SCRIPT_STYLES = `
@@ -91,6 +99,7 @@ export default function HomePage() {
           <SupportedTools />
           <NetworkDiagram />
           <HowItWorks />
+          <CliInstall />
           <WhatWeDontClaim />
         </div>
       </main>

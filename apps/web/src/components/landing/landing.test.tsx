@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { goToReport } from "@/components/report/navigation";
 import type { ReportView } from "@/server/report-view";
+import { CliInstall } from "./CliInstall";
 import { Footer } from "./Footer";
 import { HowItWorks, WhatWeDontClaim } from "./InfoSections";
 import { Navbar } from "./Navbar";
@@ -245,7 +246,31 @@ describe("landing copy", () => {
       "/report-policy",
       "/check",
       "https://github.com/hierophant-run/hierophant",
+      "https://www.npmjs.com/package/@hierophanthq/cli",
+      "https://x.com/hierophanthqcom",
     ];
     expect(hrefs.every((href) => href?.startsWith("/#") || pages.includes(href ?? ""))).toBe(true);
+  });
+
+  it("links to the npm package and X account without passing page context", () => {
+    const { container } = render(<Footer />);
+    for (const href of [
+      "https://www.npmjs.com/package/@hierophanthq/cli",
+      "https://x.com/hierophanthqcom",
+    ]) {
+      expect(container.querySelector(`a[href="${href}"]`)?.getAttribute("rel")).toContain(
+        "noopener",
+      );
+    }
+  });
+
+  it("copies the CLI install command", async () => {
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    render(<CliInstall />);
+    expect(screen.getByText("npx @hierophanthq/cli scan .")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /install globally command/i }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("npm install -g @hierophanthq/cli"));
+    expect(await screen.findByText("Copied")).toBeTruthy();
   });
 });

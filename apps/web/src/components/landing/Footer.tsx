@@ -1,6 +1,6 @@
 import { Logo } from "@/components/brand/Logo";
 import { CHECK_TABS, checkTabHash } from "@/lib/check-tabs";
-import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
+import { docsHref, GITHUB_URL, NPM_URL, siteHref, X_URL } from "@/lib/site";
 import { FooterWordmark } from "./FooterWordmark";
 import { ScanLink } from "./ScanLink";
 
@@ -32,6 +32,11 @@ export function Footer() {
                 </a>
               </li>
             ))}
+            <li>
+              <a href={siteHref("/#cli")} className={linkClass}>
+                Command line
+              </a>
+            </li>
           </ul>
         </nav>
 
@@ -66,6 +71,16 @@ export function Footer() {
             <li>
               <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
                 GitHub
+              </a>
+            </li>
+            <li>
+              <a href={NPM_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
+                npm
+              </a>
+            </li>
+            <li>
+              <a href={X_URL} target="_blank" rel="noreferrer noopener" className={linkClass}>
+                X
               </a>
             </li>
           </ul>

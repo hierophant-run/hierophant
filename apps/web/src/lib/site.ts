@@ -6,6 +6,9 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3
 );
 
 export const GITHUB_URL = "https://github.com/hierophant-run/hierophant";
+export const NPM_URL = "https://www.npmjs.com/package/@hierophanthq/cli";
+export const X_HANDLE = "@hierophanthqcom";
+export const X_URL = "https://x.com/hierophanthqcom";
 
 const DOCS_ORIGIN = (process.env.NEXT_PUBLIC_DOCS_URL ?? "").replace(/\/+$/, "");
 
