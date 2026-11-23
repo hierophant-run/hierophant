@@ -245,6 +245,7 @@ describe("landing copy", () => {
       "/terms",
       "/report-policy",
       "/check",
+      "/token",
       "https://github.com/hierophant-run/hierophant",
       "https://www.npmjs.com/package/@hierophanthq/cli",
       "https://x.com/hierophanthqcom",

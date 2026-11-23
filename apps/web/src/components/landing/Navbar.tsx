@@ -5,8 +5,10 @@ import { ScanLink } from "./ScanLink";
 
 const linkClass = "text-sm text-muted transition-colors hover:text-text";
 const mobileLinkClass = `${linkClass} px-2 py-2.5`;
+const tokenLinkClass = "text-sm font-medium text-dot transition-colors hover:text-text";
+const mobileTokenLinkClass = `${tokenLinkClass} px-2 py-2.5`;
 
-function NavLinks({ className }: { className: string }) {
+function NavLinks({ className, tokenClassName }: { className: string; tokenClassName: string }) {
   return (
     <>
       {CHECK_TABS.map((tab) => (
@@ -19,6 +21,9 @@ function NavLinks({ className }: { className: string }) {
       </a>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={className}>
         GitHub
+      </a>
+      <a href={siteHref("/token")} className={tokenClassName}>
+        $HIEROPHANT
       </a>
     </>
   );
@@ -33,7 +38,7 @@ export function Navbar() {
         </a>
 
         <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
-          <NavLinks className={linkClass} />
+          <NavLinks className={linkClass} tokenClassName={tokenLinkClass} />
         </nav>
 
         <div className="flex items-center gap-2">
@@ -63,7 +68,7 @@ export function Navbar() {
               aria-label="Mobile"
               className="absolute top-12 right-0 flex w-48 flex-col border border-line bg-surface p-2"
             >
-              <NavLinks className={mobileLinkClass} />
+              <NavLinks className={mobileLinkClass} tokenClassName={mobileTokenLinkClass} />
             </nav>
           </details>
         </div>

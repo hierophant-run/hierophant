@@ -37,6 +37,11 @@ export function Footer() {
                 Command line
               </a>
             </li>
+            <li>
+              <a href={siteHref("/token")} className={linkClass}>
+                $HIEROPHANT
+              </a>
+            </li>
           </ul>
         </nav>
 
