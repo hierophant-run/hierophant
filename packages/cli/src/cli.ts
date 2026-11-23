@@ -1,7 +1,7 @@
 import { realpath, stat } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import { parseArgs, type ParseArgsConfig } from "node:util";
-import { ENGINE_VERSION, RULESET_VERSION } from "@hierophant/engine";
+import { RULESET_VERSION } from "@hierophant/engine";
 import {
   checkPackages,
   combineStatus,
@@ -24,6 +24,7 @@ import {
   type LockEntry,
   type LockEnv,
 } from "./lock.js";
+import { CLI_VERSION } from "./version.js";
 
 export type CliIo = LockEnv & {
   stdout: (text: string) => void;
@@ -205,7 +206,7 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
         return 0;
       case "--version":
       case "-v":
-        io.stdout(`hierophant ${ENGINE_VERSION} (ruleset ${RULESET_VERSION})\n`);
+        io.stdout(`hierophant ${CLI_VERSION} (ruleset ${RULESET_VERSION})\n`);
         return 0;
       case "scan":
         return await runScan(rest, io);

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { realpath, stat } from "node:fs/promises";
 import { isAbsolute, resolve, sep } from "node:path";
-import { ENGINE_VERSION, RULES, type RuleDefinition, type ScanResult } from "@hierophant/engine";
+import { RULES, type RuleDefinition, type ScanResult } from "@hierophant/engine";
 import {
   AGENT_LABELS,
   IMPACT_LABELS,
@@ -14,6 +14,7 @@ import {
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { CLI_VERSION } from "./version.js";
 
 const MAX_FINDINGS = 100;
 const MAX_SKIPPED = 50;
@@ -127,7 +128,7 @@ const failure = (text: string) => ({ content: [{ type: "text" as const, text }],
 
 /** Read-only by design: an agent must never be able to change its own safety settings here. */
 export function createMcpServer(roots: readonly string[]): McpServer {
-  const server = new McpServer({ name: "hierophant", version: ENGINE_VERSION });
+  const server = new McpServer({ name: "hierophant", version: CLI_VERSION });
 
   server.registerTool(
     "scan_folder",

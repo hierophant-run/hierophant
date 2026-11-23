@@ -16,7 +16,8 @@
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @hierophant/web db:generate",
     "db:migrate": "pnpm --filter @hierophant/web db:migrate",
-    "hierophant": "node packages/cli/dist/cli.cjs"
+    "hierophant": "node packages/cli/dist/cli.cjs",
+    "cli:pack": "pnpm --filter @hierophant/cli... build && pnpm --filter @hierophant/cli pack:npm"
   },
   "devDependencies": {
     "prettier": "^3.10.1",

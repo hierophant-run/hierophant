@@ -1,6 +1,6 @@
 {
   "name": "@hierophant/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -11,7 +11,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=cjs --main-fields=module,main --legal-comments=none --banner:js=#!/usr/bin/env\\ node --outfile=dist/cli.cjs --log-level=warning",
+    "build": "node scripts/build.mjs",
+    "pack:npm": "node scripts/pack-npm.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

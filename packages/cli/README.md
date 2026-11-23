@@ -2,11 +2,17 @@
 
 Checks a local folder for agent hooks, rules, MCP configs, and auto-run tasks. It reads files as text and never runs them. It makes no network requests unless you add `--online`.
 
-**Status: prepared, not published.** It is not on npm yet. Run it from this repository:
+It needs Node.js 22.12 or later.
 
 ```bash
-pnpm build
-node packages/cli/dist/cli.cjs --help
+npx @hierophanthq/cli scan .
+```
+
+Or install it globally and use the `hierophant` command:
+
+```bash
+npm install -g @hierophanthq/cli
+hierophant scan .
 ```
 
 ## Scan a folder
@@ -64,7 +70,7 @@ Locked settings reduce risk, but they are not a guarantee. For example, once you
 ## MCP server
 
 ```bash
-claude mcp add hierophant -- node /absolute/path/to/packages/cli/dist/cli.cjs mcp --root /absolute/path/to/projects
+claude mcp add hierophant -- npx -y @hierophanthq/cli@0.1.0 mcp --root /absolute/path/to/projects
 ```
 
 | Tool           | Description                              |

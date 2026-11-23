@@ -51,15 +51,13 @@ Open **[hierophanthq.com](https://hierophanthq.com)**, choose Repo, Package, MCP
 
 ### From the command line
 
-The CLI is not on npm yet, so run it from source. It needs Node.js 22.12 or later and pnpm.
+It needs Node.js 22.12 or later.
 
 ```bash
-git clone https://github.com/hierophant-run/hierophant.git
-cd hierophant
-pnpm install
-pnpm build
-node packages/cli/dist/cli.cjs scan /path/to/repo
+npx @hierophanthq/cli scan /path/to/repo
 ```
+
+To install it globally, run `npm install -g @hierophanthq/cli`, then use `hierophant scan`.
 
 Example output:
 
@@ -91,13 +89,13 @@ Useful options:
 
 ```bash
 # Fail at a chosen severity
-node packages/cli/dist/cli.cjs scan . --fail-on medium
+npx @hierophanthq/cli scan . --fail-on medium
 
 # Print JSON
-node packages/cli/dist/cli.cjs scan . --format json
+npx @hierophanthq/cli scan . --format json
 
 # Look up package names in OSV, npm, and PyPI
-node packages/cli/dist/cli.cjs scan . --online
+npx @hierophanthq/cli scan . --online
 ```
 
 The CLI makes no network requests unless you add `--online`, which sends package names and versions only.
@@ -107,9 +105,9 @@ The CLI makes no network requests unless you add `--online`, which sends package
 `lock` applies stricter user-level settings that are confirmed in vendor documentation. It previews changes by default and backs up each file before writing.
 
 ```bash
-node packages/cli/dist/cli.cjs lock
-node packages/cli/dist/cli.cjs lock --apply
-node packages/cli/dist/cli.cjs lock --undo
+npx @hierophanthq/cli lock
+npx @hierophanthq/cli lock --apply
+npx @hierophanthq/cli lock --undo
 ```
 
 It supports Claude Code, VS Code, Antigravity CLI, and Gemini CLI. Cursor is not changed because its settings could not be confirmed in official documentation. See the [CLI guide](packages/cli/README.md) for every setting.
@@ -119,7 +117,7 @@ It supports Claude Code, VS Code, Antigravity CLI, and Gemini CLI. Cursor is not
 The MCP server is read-only and can only access the folders you allow.
 
 ```bash
-claude mcp add hierophant -- node /absolute/path/to/hierophant/packages/cli/dist/cli.cjs mcp --root /absolute/path/to/projects
+claude mcp add hierophant -- npx -y @hierophanthq/cli@0.1.0 mcp --root /absolute/path/to/projects
 ```
 
 ### In GitHub Actions

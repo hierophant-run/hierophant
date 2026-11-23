@@ -111,9 +111,10 @@ export default function QuickstartPage() {
 
       <h2>Local tools</h2>
       <p>
-        A command-line scanner, a read-only MCP server, a settings lock, and a preview GitHub Action
-        use the same rules. They are not on npm or GitHub Marketplace yet, but you can run them from
-        the <a href={GITHUB_URL}>source code on GitHub</a>.
+        A command-line scanner, a read-only MCP server, and a settings lock use the same rules. Run
+        them with <code>npx @hierophanthq/cli scan .</code>. A preview GitHub Action is available
+        from the <a href={GITHUB_URL}>source code on GitHub</a>, but it is not on GitHub Marketplace
+        yet.
       </p>
     </>
   );
