@@ -18,6 +18,8 @@
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true },
+  // Checks watched repositories for agent file changes.
+  "triggers": { "crons": ["*/10 * * * *"] },
   // GITHUB_TOKEN and DATABASE_URL are Cloudflare Secrets and must never be added here.
   // Workers Free allows 50 outbound requests per visit. Remove the limit on a paid plan.
   "vars": { "DEPLOY_TARGET": "cloudflare", "SCAN_SUBREQUEST_LIMIT": "45" },

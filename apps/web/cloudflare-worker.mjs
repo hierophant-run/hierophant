@@ -1,6 +1,8 @@
 import handler from "./.open-next/worker.js";
 
-const BADGE_CACHE_PREFIX = "/api/badge/check/";
+const BADGE_CACHE_PREFIXES = ["/api/badge/check/", "/api/badge/watch/"];
+const CRON_HEADER = "x-hierophant-cron";
+const MONITOR_URL = "https://hierophanthq.com/api/monitor/run";
 
 /** Check badges appear in READMEs, so popular ones are served from Cloudflare's cache. */
 async function cachedBadge(request, env, context) {
@@ -19,18 +21,51 @@ async function cachedBadge(request, env, context) {
  * script. This header stops that on every response, including 404 pages.
  */
 const worker = {
-  async fetch(request, env, context) {
+  async fetch(incoming, env, context) {
+    // Only the scheduled trigger below may mark a request as coming from the cron.
+    let request = incoming;
+    if (incoming.headers.has(CRON_HEADER)) {
+      const headers = new Headers(incoming.headers);
+      headers.delete(CRON_HEADER);
+      request = new Request(incoming, { headers });
+    }
+
     const { pathname } = new URL(request.url);
-    if (request.method === "GET" && pathname.startsWith(BADGE_CACHE_PREFIX)) {
+    if (
+      request.method === "GET" &&
+      BADGE_CACHE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+    ) {
       return cachedBadge(request, env, context);
     }
 
     const response = await handler.fetch(request, env, context);
-    if (!pathname.startsWith("/r/") && !pathname.startsWith("/check/")) return response;
+    const isNoncePage =
+      pathname.startsWith("/r/") ||
+      pathname.startsWith("/check/") ||
+      (pathname.startsWith("/w/") && !pathname.endsWith("/feed.xml"));
+    if (!isNoncePage) return response;
 
     const protectedResponse = new Response(response.body, response);
     protectedResponse.headers.set("Cache-Control", "private, no-store, no-transform");
     return protectedResponse;
+  },
+
+  /** Checks watched repositories. Runs on the schedule in wrangler.jsonc. */
+  async scheduled(_event, env, context) {
+    const request = new Request(MONITOR_URL, { method: "POST", headers: { [CRON_HEADER]: "1" } });
+    context.waitUntil(
+      handler.fetch(request, env, context).then(async (response) => {
+        if (!response.ok)
+          console.error(
+            JSON.stringify({
+              level: "error",
+              event: "monitor_run_failed",
+              status: response.status,
+            }),
+          );
+        await response.body?.cancel();
+      }),
+    );
   },
 };
 

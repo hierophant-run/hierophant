@@ -130,3 +130,27 @@ export async function handleBadgeRequest(
     return failure("Unavailable", error instanceof ApiError ? error.status : 500);
   }
 }
+
+const WATCH_LABEL = "Watched by Hierophant";
+
+/** Shows the newest result for a watched repository, or that no result exists yet. */
+export function renderWatchBadge(options: {
+  status: ScanStatus | null;
+  href: string;
+  httpStatus?: number;
+  message?: string;
+}): Response {
+  const message = options.message ?? (options.status ? STATUS[options.status].label : "Watching");
+  const fill = options.status ? STATUS[options.status].fill : "#A9BBB6";
+  return new Response(drawBadge(message, fill, options.href, WATCH_LABEL), {
+    status: options.httpStatus ?? 200,
+    headers: {
+      ...BADGE_HEADERS,
+      "Cache-Control":
+        options.httpStatus && options.httpStatus !== 200 ? "no-store" : "public, max-age=900",
+    },
+  });
+}
+
+export const watchBadgeMarkdown = (owner: string, repo: string, siteUrl: string = SITE_URL) =>
+  `[![${WATCH_LABEL}](${siteUrl}/api/badge/watch/${owner}/${repo})](${siteUrl}/w/${owner}/${repo})`;

@@ -58,6 +58,13 @@ export default function PrivacyPage() {
         content to these services.
       </p>
 
+      <h2>Watched repositories</h2>
+      <p>
+        When someone watches a public repository, we store its name, branch, latest commit, and the
+        paths and git hashes of its agent files. We never store file contents. Anyone can see which
+        public repositories are watched. We do not record who started watching.
+      </p>
+
       <h2>Package, MCP, skill, and token checks</h2>
       <p>
         When you use the check page, our server sends what you entered to the matching public

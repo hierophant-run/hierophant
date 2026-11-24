@@ -5,12 +5,14 @@ import type { Database } from "./db/types";
 import { ApiError } from "./errors";
 import type { ScanDeps } from "./http";
 import { errorName, logError } from "./log";
+import { MonitorStore } from "./monitor-store";
 import { CHECK_LIMITS, FEEDBACK_LIMITS, RateLimiter } from "./rate-limit";
 import { ReportStore } from "./report-store";
 
 type Shared = {
   pool: Pool;
   store: ReportStore;
+  monitors: MonitorStore;
   limiter: RateLimiter;
   feedbackLimiter: RateLimiter;
   checkLimiter: RateLimiter;
@@ -48,6 +50,7 @@ function createShared(databaseUrl: string): Shared {
   return {
     pool,
     store: new ReportStore(db),
+    monitors: new MonitorStore(db),
     limiter: new RateLimiter(db, databaseUrl),
     feedbackLimiter: new RateLimiter(db, databaseUrl, FEEDBACK_LIMITS),
     checkLimiter: new RateLimiter(db, databaseUrl, CHECK_LIMITS),
@@ -64,13 +67,14 @@ export function getDeps(): ScanDeps {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new ApiError("service_unavailable");
 
-  const { store, limiter, feedbackLimiter, checkLimiter } = shared(databaseUrl);
+  const { store, monitors, limiter, feedbackLimiter, checkLimiter } = shared(databaseUrl);
   const githubToken = process.env.GITHUB_TOKEN;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
   const subrequestLimit = Number(process.env.SCAN_SUBREQUEST_LIMIT);
   return {
     store,
+    monitors,
     limiter,
     feedbackLimiter,
     checkLimiter,
@@ -80,4 +84,11 @@ export function getDeps(): ScanDeps {
     ...(turnstileSecret ? { turnstileSecret } : {}),
     ...(Number.isSafeInteger(subrequestLimit) && subrequestLimit > 0 ? { subrequestLimit } : {}),
   };
+}
+
+/** The watched-repository store. Fails the same way as other services when it is not set up. */
+export function getMonitors(): MonitorStore {
+  const { monitors } = getDeps();
+  if (!monitors) throw new ApiError("service_unavailable");
+  return monitors;
 }

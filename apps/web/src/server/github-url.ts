@@ -18,6 +18,9 @@ function invalid(): never {
  * Accepts only https://github.com/{owner}/{repo}, optionally with /tree/{ref} or /commit/{sha}.
  * Callers build API URLs from the returned parts and never fetch the input itself.
  */
+/** Checks an owner and repository name taken from a page path. */
+export const isRepoName = (owner: string, repo: string) => OWNER.test(owner) && REPO.test(repo);
+
 export function parseGitHubUrl(input: unknown): RepoTarget {
   if (typeof input !== "string") invalid();
   const raw = input.trim();

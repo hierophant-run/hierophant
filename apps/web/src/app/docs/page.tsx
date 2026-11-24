@@ -109,6 +109,18 @@ export default function QuickstartPage() {
         describes that one commit, so scan again after you change agent files.
       </p>
 
+      <h2>Watch a repository</h2>
+      <p>
+        On a report, choose <strong>Watch this repo</strong>. Hierophant checks the default branch
+        about every 30 minutes. When an agent file is added, changed, or removed, it records which
+        files changed and scans the new commit.
+      </p>
+      <p>
+        The watch page lists every change with its result. Follow it with the RSS feed linked on
+        that page, or add its badge to a README. No account is needed. If a repository becomes
+        private or is deleted, checks stop.
+      </p>
+
       <h2>Local tools</h2>
       <p>
         A command-line scanner, a read-only MCP server, and a settings lock use the same rules. Run

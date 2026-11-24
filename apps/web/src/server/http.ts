@@ -5,6 +5,8 @@ import { GitHubClient } from "./github-client";
 import { parseGitHubUrl } from "./github-url";
 import { errorName, logError } from "./log";
 import type { RateLimiter } from "./rate-limit";
+import { runMonitors, watchRepository } from "./monitor-service";
+import type { MonitorStore } from "./monitor-store";
 import { isReportId, type ReportStore } from "./report-store";
 import { toReportView, type ReportView } from "./report-view";
 import { ScanBudget } from "./scan-budget";
@@ -28,6 +30,7 @@ export type ScanDeps = {
   /** Outbound requests one scan may make on hosts with a per-request cap. */
   subrequestLimit?: number;
   siteUrl?: string;
+  monitors?: MonitorStore;
   scanTimeoutMs?: number;
   treeTimeoutMs?: number;
 };
@@ -48,7 +51,7 @@ function jsonResponse(body: unknown, status: number, headers: HeadersInit = {}):
   });
 }
 
-type Route = "scan" | "report" | "feedback";
+type Route = "scan" | "report" | "feedback" | "watch" | "monitor";
 
 function toApiError(error: unknown, route: Route): ApiError {
   const apiError = error instanceof ApiError ? error : new ApiError("internal_error");
@@ -294,5 +297,67 @@ export async function handleReportRequest(id: string, getDeps: () => ScanDeps): 
     return jsonResponse({ report: toReportView(report) }, 200);
   } catch (error) {
     return errorResponse(error, "report");
+  }
+}
+
+/** Starts watching the repository behind a report. */
+export async function handleWatchRequest(
+  request: Request,
+  getDeps: () => ScanDeps,
+): Promise<Response> {
+  try {
+    const deps = getDeps();
+    if (!deps.monitors) throw new ApiError("service_unavailable");
+    assertSameOrigin(request, deps.siteUrl);
+
+    const body = await readBody(request);
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      throw new ApiError("invalid_request");
+    }
+    const keys = Object.keys(body);
+    const { reportId } = body as { reportId?: unknown };
+    if (keys.length !== 1 || typeof reportId !== "string" || !isReportId(reportId)) {
+      throw new ApiError("invalid_request");
+    }
+
+    const limit = await guardDatabase(() => deps.limiter.consume(clientIp(request)));
+    if (!limit.allowed) throw new ApiError("rate_limited", limit.retryAfterSeconds);
+
+    const { monitor, created } = await watchRepository(reportId, {
+      store: deps.store,
+      monitors: deps.monitors,
+      fetch: deps.fetch,
+      ...(deps.githubToken ? { githubToken: deps.githubToken } : {}),
+    });
+    const path = `/w/${encodeURIComponent(monitor.owner)}/${encodeURIComponent(monitor.repo)}`;
+    return jsonResponse({ path, created }, created ? 201 : 200);
+  } catch (error) {
+    return errorResponse(error, "watch");
+  }
+}
+
+/** Only the scheduled trigger can set this header. The Worker removes it from outside requests. */
+export const CRON_HEADER = "x-hierophant-cron";
+
+export async function handleMonitorRun(
+  request: Request,
+  getDeps: () => ScanDeps,
+): Promise<Response> {
+  if (request.headers.get(CRON_HEADER) !== "1") {
+    return jsonResponse({ error: { code: "not_found", message: "Not found." } }, 404);
+  }
+  try {
+    const deps = getDeps();
+    if (!deps.monitors) throw new ApiError("service_unavailable");
+    const summary = await runMonitors({
+      store: deps.store,
+      monitors: deps.monitors,
+      fetch: deps.fetch,
+      ...(deps.githubToken ? { githubToken: deps.githubToken } : {}),
+      ...(deps.subrequestLimit ? { subrequestLimit: deps.subrequestLimit } : {}),
+    });
+    return jsonResponse(summary, 200);
+  } catch (error) {
+    return errorResponse(error, "monitor");
   }
 }

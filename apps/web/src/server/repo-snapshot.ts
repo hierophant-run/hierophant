@@ -41,9 +41,9 @@ const UNSAFE_NAME = /[\u0000-\u001f\u007f]/;
 
 const displayPath = (path: string) => path.replace(/[\u0000-\u001f\u007f]/g, "?");
 
-type Listing = { entries: TreeEntry[]; partial: boolean };
+export type Listing = { entries: TreeEntry[]; partial: boolean };
 
-async function listEntries(
+export async function listEntries(
   client: GitHubClient,
   owner: string,
   repo: string,

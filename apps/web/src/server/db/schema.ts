@@ -91,3 +91,51 @@ export const rateLimits = pgTable(
     index("rate_limits_window_idx").on(table.windowStart),
   ],
 );
+
+export type MonitorStatus = "active" | "unavailable";
+
+/** Public repositories someone asked to watch. Only git hashes and file paths are kept. */
+export const monitors = pgTable(
+  "monitors",
+  {
+    id: text("id").primaryKey(),
+    owner: text("owner").notNull(),
+    repo: text("repo").notNull(),
+    repoKey: text("repo_key").notNull(),
+    branch: text("branch").notNull(),
+    commitSha: text("commit_sha").notNull(),
+    /** Agent file path to git blob hash, used to see which files changed. */
+    agentFiles: jsonb("agent_files").$type<Record<string, string>>().notNull(),
+    status: text("status").$type<MonitorStatus>().notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    checkedAt: timestamp("checked_at", { withTimezone: true }).defaultNow().notNull(),
+    changedAt: timestamp("changed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("monitors_repo_key_idx").on(table.repoKey),
+    index("monitors_checked_idx").on(table.status, table.checkedAt),
+  ],
+);
+
+/** One row per detected change to a watched repository's agent files. */
+export const monitorEvents = pgTable(
+  "monitor_events",
+  {
+    id: text("id").primaryKey(),
+    monitorId: text("monitor_id")
+      .notNull()
+      .references(() => monitors.id, { onDelete: "cascade" }),
+    commitSha: text("commit_sha").notNull(),
+    added: jsonb("added").$type<string[]>().notNull(),
+    changed: jsonb("changed").$type<string[]>().notNull(),
+    removed: jsonb("removed").$type<string[]>().notNull(),
+    reportId: text("report_id").references(() => reports.id, { onDelete: "set null" }),
+    status: text("status").$type<ScanStatus>(),
+    scanAttempts: integer("scan_attempts").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("monitor_events_monitor_idx").on(table.monitorId, table.createdAt),
+    index("monitor_events_pending_idx").on(table.reportId, table.createdAt),
+  ],
+);

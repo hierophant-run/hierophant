@@ -16,12 +16,19 @@ export async function createTestDb() {
     db: pglite as unknown as Database,
     async reset() {
       await pglite.execute(
-        sql`truncate table finding_feedback, report_findings, reports, rate_limits`,
+        sql`truncate table monitor_events, monitors, finding_feedback, report_findings, reports, rate_limits`,
       );
     },
     /** Returns every stored row as text, to prove what is and is not persisted. */
     async dump() {
-      const tables = ["reports", "report_findings", "finding_feedback", "rate_limits"];
+      const tables = [
+        "reports",
+        "report_findings",
+        "finding_feedback",
+        "rate_limits",
+        "monitors",
+        "monitor_events",
+      ];
       const rows = await Promise.all(
         tables.map((table) => client.query(`select * from ${table}`).then((r) => r.rows)),
       );

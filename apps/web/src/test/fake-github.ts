@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { FetchLike } from "@/server/github-client";
 
 export type FakeFile = {
@@ -31,7 +32,9 @@ function treeEntry(file: FakeFile, path = file.path) {
     path,
     mode: file.mode ?? "100644",
     type: file.type ?? "blob",
-    sha: "b".repeat(40),
+    sha: createHash("sha1")
+      .update(`${path}\n${file.content ?? ""}`)
+      .digest("hex"),
     size: file.size ?? new TextEncoder().encode(file.content ?? "").length,
   };
 }
@@ -117,7 +120,8 @@ export function fakeGitHub(repos: FakeRepo[]) {
     }
     if (section === "commits") {
       if (repo.empty) return json({ message: "Git Repository is empty." }, 409);
-      if (decodeURIComponent(kind ?? "") !== (repo.defaultBranch ?? "main")) {
+      const ref = decodeURIComponent(kind ?? "");
+      if (ref !== (repo.defaultBranch ?? "main") && ref !== (repo.sha ?? DEFAULT_SHA)) {
         return json({ message: "No commit found" }, 404);
       }
       return new Response(repo.sha ?? DEFAULT_SHA);

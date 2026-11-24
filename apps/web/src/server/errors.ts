@@ -15,6 +15,7 @@ const ERRORS = {
   internal_error: [500, "Something went wrong. Please try again."],
   github_unavailable: [502, "GitHub could not be reached. Please try again."],
   database_unavailable: [503, "Reports are temporarily unavailable. Please try again."],
+  monitor_limit: [503, "Monitoring is full. Please try again later."],
   check_unavailable: [503, "A public source could not be reached. Please try again."],
   github_rate_limited: [503, "The GitHub API limit was reached. Please try again later."],
   service_unavailable: [503, "The scanner is not configured."],
