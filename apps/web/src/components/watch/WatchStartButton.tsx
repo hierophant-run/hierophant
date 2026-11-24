@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export function WatchButton({ reportId }: { reportId: string }) {
+/** Starts watching from a report or a check result, then opens the watch page. */
+export function WatchStartButton({
+  body,
+  label = "Watch for changes",
+}: {
+  body: { reportId: string } | { check: string };
+  label?: string;
+}) {
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,16 +21,16 @@ export function WatchButton({ reportId }: { reportId: string }) {
       const response = await fetch("/api/watch", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ reportId }),
+        body: JSON.stringify(body),
       });
-      const body = (await response.json()) as { path?: string; error?: { message?: string } };
-      if (!response.ok || !body.path?.startsWith("/w/")) {
-        throw new Error(body.error?.message ?? "This repository could not be watched.");
+      const result = (await response.json()) as { path?: string; error?: { message?: string } };
+      if (!response.ok || !/^\/(w|watch)\//.test(result.path ?? "")) {
+        throw new Error(result.error?.message ?? "This could not be watched.");
       }
       // A full page load gives the watch page its own strict Content-Security-Policy.
-      window.location.assign(body.path);
+      window.location.assign(result.path!);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "This repository could not be watched.");
+      setError(caught instanceof Error ? caught.message : "This could not be watched.");
       setIsBusy(false);
     }
   };
@@ -31,7 +38,7 @@ export function WatchButton({ reportId }: { reportId: string }) {
   return (
     <div className="mt-5">
       <Button onClick={watch} disabled={isBusy}>
-        {isBusy ? "Starting" : "Watch this repo"}
+        {isBusy ? "Starting" : label}
       </Button>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-danger">

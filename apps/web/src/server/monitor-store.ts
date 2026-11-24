@@ -1,7 +1,13 @@
 import { randomBytes } from "node:crypto";
 import type { ScanStatus } from "@hierophant/engine";
 import { and, asc, count, desc, eq, isNull, lt, sql } from "drizzle-orm";
-import { monitorEvents, monitors, reports, type MonitorStatus } from "./db/schema";
+import {
+  monitorEvents,
+  monitors,
+  reports,
+  type MonitorKind,
+  type MonitorStatus,
+} from "./db/schema";
 import type { Database } from "./db/types";
 import { repoKey } from "./report-store";
 
@@ -40,6 +46,14 @@ export function diffAgentFiles(
 export const hasChanges = (diff: AgentFileDiff) =>
   diff.added.length + diff.changed.length + diff.removed.length > 0;
 
+/** The unique key for each kind of watched thing. */
+export const monitorKey = (kind: MonitorKind, owner: string, repo: string, target = ""): string =>
+  kind === "repo"
+    ? repoKey(owner, repo)
+    : kind === "mcp"
+      ? `mcp:${target.toLowerCase()}`
+      : `skill:${repoKey(owner, repo)}/${target.toLowerCase()}`;
+
 export class MonitorStore {
   constructor(private readonly db: Database) {}
 
@@ -52,6 +66,17 @@ export class MonitorStore {
     return row ?? null;
   }
 
+  async findByKey(key: string): Promise<Monitor | null> {
+    const [row] = await this.db.select().from(monitors).where(eq(monitors.repoKey, key)).limit(1);
+    return row ?? null;
+  }
+
+  async findById(id: string): Promise<Monitor | null> {
+    if (!/^[A-Za-z0-9_-]{22}$/.test(id)) return null;
+    const [row] = await this.db.select().from(monitors).where(eq(monitors.id, id)).limit(1);
+    return row ?? null;
+  }
+
   async total(): Promise<number> {
     const [row] = await this.db.select({ value: count() }).from(monitors);
     return row?.value ?? 0;
@@ -59,19 +84,24 @@ export class MonitorStore {
 
   /** Creates a monitor, or returns the existing one if the repository is already watched. */
   async create(input: {
+    kind?: MonitorKind;
     owner: string;
     repo: string;
+    target?: string;
     branch: string;
     commitSha: string;
     agentFiles: Record<string, string>;
+    lastStatus?: ScanStatus | null;
   }): Promise<{ monitor: Monitor; created: boolean }> {
+    const kind = input.kind ?? "repo";
+    const key = monitorKey(kind, input.owner, input.repo, input.target);
     const [row] = await this.db
       .insert(monitors)
-      .values({ id: newId(), repoKey: repoKey(input.owner, input.repo), ...input })
+      .values({ id: newId(), repoKey: key, ...input, kind })
       .onConflictDoNothing()
       .returning();
     if (row) return { monitor: row, created: true };
-    const existing = await this.findByRepo(input.owner, input.repo);
+    const existing = await this.findByKey(key);
     if (!existing) throw new Error("Monitor conflict could not be resolved");
     return { monitor: existing, created: false };
   }
@@ -98,15 +128,22 @@ export class MonitorStore {
     commitSha: string,
     agentFiles: Record<string, string>,
     diff: AgentFileDiff,
+    status: ScanStatus | null = null,
   ): Promise<MonitorEvent> {
     return this.db.transaction(async (tx) => {
       const [event] = await tx
         .insert(monitorEvents)
-        .values({ id: newId(), monitorId: monitor.id, commitSha, ...diff })
+        .values({ id: newId(), monitorId: monitor.id, commitSha, ...diff, status })
         .returning();
       await tx
         .update(monitors)
-        .set({ commitSha, agentFiles, checkedAt: sql`now()`, changedAt: sql`now()` })
+        .set({
+          commitSha,
+          agentFiles,
+          checkedAt: sql`now()`,
+          changedAt: sql`now()`,
+          ...(status ? { lastStatus: status } : {}),
+        })
         .where(eq(monitors.id, monitor.id));
       if (!event) throw new Error("Monitor event was not saved");
       return event;
@@ -121,7 +158,13 @@ export class MonitorStore {
       .select({ event: monitorEvents, monitor: monitors })
       .from(monitorEvents)
       .innerJoin(monitors, eq(monitorEvents.monitorId, monitors.id))
-      .where(and(isNull(monitorEvents.reportId), lt(monitorEvents.scanAttempts, maxAttempts)))
+      .where(
+        and(
+          eq(monitors.kind, "repo"),
+          isNull(monitorEvents.reportId),
+          lt(monitorEvents.scanAttempts, maxAttempts),
+        ),
+      )
       .orderBy(asc(monitorEvents.createdAt))
       .limit(1);
     return row ?? null;

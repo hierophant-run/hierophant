@@ -4,7 +4,7 @@ Hierophant processes content from repositories nobody has vetted, so we take rep
 
 ## Reporting a vulnerability
 
-Please report privately to the address in [`/.well-known/security.txt`](/.well-known/security.txt) on the live site. Do not open a public issue.
+Please report privately through [GitHub private vulnerability reporting](https://github.com/hierophant-run/hierophant/security/advisories/new). Do not open a public issue. The same link is in [`/.well-known/security.txt`](https://hierophanthq.com/.well-known/security.txt).
 
 Include:
 

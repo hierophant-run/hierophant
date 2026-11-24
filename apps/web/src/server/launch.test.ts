@@ -127,8 +127,14 @@ describe("badge", () => {
 
 describe("security.txt", () => {
   it("has the required fields and a future expiry", () => {
-    const text = buildSecurityTxt("security@example.com", SITE);
-    expect(text).toContain("Contact: mailto:security@example.com");
+    const text = buildSecurityTxt(SITE);
+    expect(text).toContain(
+      "Contact: https://github.com/hierophant-run/hierophant/security/advisories/new",
+    );
+    expect(text).not.toContain("mailto:");
+    expect(buildSecurityTxt(SITE, "security@example.com")).toContain(
+      "Contact: mailto:security@example.com",
+    );
     expect(text).toContain(`Expires: ${SECURITY_TXT_EXPIRES}`);
     expect(text).toContain(`Canonical: ${SITE}/.well-known/security.txt`);
     expect(new Date(SECURITY_TXT_EXPIRES).getTime()).toBeGreaterThan(

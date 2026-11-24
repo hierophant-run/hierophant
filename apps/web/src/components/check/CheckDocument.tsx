@@ -3,6 +3,8 @@ import { BadgeSnippet } from "@/components/report/BadgeSnippet";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { WatchStartButton } from "@/components/watch/WatchStartButton";
+import { checkPath } from "@/lib/check-target";
 import { cn } from "@/lib/cn";
 import { checkBadgeMarkdown, checkBadgePath, type CheckResult } from "@/server/checks";
 import type { CheckInspection, CheckSignal } from "@/server/checks/common";
@@ -199,6 +201,22 @@ export function CheckDocument({ result }: { result: CheckResult }) {
           <ScopeList title="Not checked" items={result.notChecked} />
         </div>
       </section>
+
+      {result.target.kind === "mcp" || result.target.kind === "skill" ? (
+        <section aria-labelledby="watch-title" className="mt-14">
+          <Eyebrow>Monitoring</Eyebrow>
+          <h2 id="watch-title" className="mt-3 text-2xl font-medium tracking-tight sm:text-4xl">
+            Watch this for changes
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            {result.target.kind === "mcp"
+              ? "Hierophant checks the official MCP Registry record about every 30 minutes. When the version, launch packages, or hosts change, it checks the server again and adds the result to a feed you can follow."
+              : "Hierophant checks this skill folder about every 30 minutes. When a file in it changes, it checks the skill again and adds the result to a feed you can follow."}{" "}
+            No account is needed.
+          </p>
+          <WatchStartButton body={{ check: checkPath(result.target) }} />
+        </section>
+      ) : null}
 
       <section className="mt-14">
         <Eyebrow>Badge</Eyebrow>

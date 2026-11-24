@@ -13,7 +13,7 @@ import { FeedbackControl } from "./FeedbackControl";
 import { FindingExcerpt } from "./FindingExcerpt";
 import { openingSteps } from "./guidance";
 import { PackageChecks } from "./PackageChecks";
-import { WatchButton } from "./WatchButton";
+import { WatchStartButton } from "@/components/watch/WatchStartButton";
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"];
 
@@ -431,7 +431,7 @@ export function ReportDocument({ report }: { report: ReportView }) {
           Hierophant checks the default branch about every 30 minutes. When an agent file changes,
           it scans the new commit and adds it to a feed you can follow. No account is needed.
         </p>
-        <WatchButton reportId={report.id} />
+        <WatchStartButton body={{ reportId: report.id }} label="Watch this repo" />
       </section>
 
       <section className="mt-16 sm:mt-20">

@@ -152,5 +152,8 @@ export function renderWatchBadge(options: {
   });
 }
 
-export const watchBadgeMarkdown = (owner: string, repo: string, siteUrl: string = SITE_URL) =>
-  `[![${WATCH_LABEL}](${siteUrl}/api/badge/watch/${owner}/${repo})](${siteUrl}/w/${owner}/${repo})`;
+export const watchBadgeMarkdown = (
+  badgePath: string,
+  pagePath: string,
+  siteUrl: string = SITE_URL,
+) => `[![${WATCH_LABEL}](${siteUrl}${badgePath})](${siteUrl}${pagePath})`;

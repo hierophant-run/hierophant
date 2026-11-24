@@ -5,6 +5,7 @@ import { ScanForm } from "@/components/landing/ScanForm";
 import { cn } from "@/lib/cn";
 import { CHECK_TABS, checkTabHash, tabFromHash, type CheckTabId } from "@/lib/check-tabs";
 import { CheckForm } from "./CheckForm";
+import { WatchForm } from "./WatchForm";
 import { goToCheckForm } from "./focus";
 
 function subscribeToHash(onChange: () => void) {
@@ -80,7 +81,7 @@ export function CheckPanel({ className }: { className?: string }) {
       <div
         role="group"
         aria-label="What to check"
-        className="grid grid-cols-5 gap-1 sm:flex sm:gap-1.5"
+        className="grid grid-cols-3 gap-1 sm:flex sm:gap-1.5"
       >
         {CHECK_TABS.map((tab) => (
           <button
@@ -103,6 +104,8 @@ export function CheckPanel({ className }: { className?: string }) {
       <div className="mt-2.5 min-h-40 sm:min-h-24">
         {active === "repo" ? (
           <ScanForm onBusyChange={onScanBusy} />
+        ) : active === "watch" ? (
+          <WatchForm />
         ) : (
           <CheckForm key={active} type={active} />
         )}

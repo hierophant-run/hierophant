@@ -13,7 +13,7 @@ export default function TermsPage() {
   return (
     <>
       <h1>Terms of Use</h1>
-      <p>Last updated: November 23, 2026</p>
+      <p>Last updated: November 24, 2026</p>
       <p>These terms apply to your use of Hierophant. By using the service, you agree to them.</p>
 
       <h2>The service</h2>
@@ -35,6 +35,19 @@ export default function TermsPage() {
         Token checks only read on-chain text for instructions aimed at AI agents. They are not a
         safety rating, audit, endorsement, or investment advice. Do not use a result or badge to
         promote a token or to suggest that it is safe to buy.
+      </p>
+
+      <h2>The $HIEROPHANT token</h2>
+      <p>
+        $HIEROPHANT is a token associated with this project. It has no utility and gives no rights
+        to the service, its code, or any revenue. Holding it does not change any check, report,
+        rule, or badge, and Hierophant does not treat its own token differently from any other
+        token.
+      </p>
+      <p>
+        Nothing we publish about $HIEROPHANT is investment advice or a promise about its price,
+        liquidity, or future. Tokens can lose all of their value. The only official contract address
+        is the one on the <Link href="/token">token page</Link>.
       </p>
 
       <h2>Acceptable use</h2>

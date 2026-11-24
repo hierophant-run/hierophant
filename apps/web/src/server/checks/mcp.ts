@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { scan, type PackageRef } from "@hierophant/engine";
 import { checkPackages } from "@hierophant/intel";
 import type { CheckTarget } from "@/lib/check-target";
@@ -81,13 +82,19 @@ function packageRefs(packages: Array<Record<string, unknown>>): PackageRef[] {
   });
 }
 
-export async function runMcpCheck(
-  target: Extract<CheckTarget, { kind: "mcp" }>,
-  context: CheckContext,
-): Promise<CheckResult> {
-  const registryUrl = `${REGISTRY}/${encodeURIComponent(target.name)}/versions/latest`;
+type RegistryRecord = {
+  body: Record<string, unknown> & { server: Record<string, unknown> };
+  registryUrl: string;
+};
+
+/** Reads the latest official MCP Registry record for a server. */
+export async function fetchRegistryRecord(
+  name: string,
+  fetchImpl: CheckContext["fetch"],
+): Promise<RegistryRecord> {
+  const registryUrl = `${REGISTRY}/${encodeURIComponent(name)}/versions/latest`;
   const { status, body } = await fetchJson(
-    context.fetch,
+    fetchImpl,
     registryUrl,
     { headers: { accept: "application/json", "user-agent": "hierophant" } },
     MAX_RESPONSE_BYTES,
@@ -96,6 +103,29 @@ export async function runMcpCheck(
   if (status !== 200 || !isRecord(body) || !isRecord(body.server)) {
     throw new ApiError("check_unavailable");
   }
+  return { body: body as RegistryRecord["body"], registryUrl };
+}
+
+const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+
+/** The parts of a registry record that change what a server runs or where it connects. */
+export function registryFingerprint(body: RegistryRecord["body"]): Record<string, string> {
+  const server = body.server;
+  const meta = isRecord(body._meta) ? body._meta[OFFICIAL_META] : null;
+  return {
+    Version: cleanText(text(server.version), 64),
+    "Launch packages": digest(records(server.packages)),
+    "Remote hosts": digest(records(server.remotes)),
+    Description: digest([text(server.title), text(server.description)]),
+    "Registry status": cleanText(isRecord(meta) ? text(meta.status) : "", 32),
+  };
+}
+
+export async function runMcpCheck(
+  target: Extract<CheckTarget, { kind: "mcp" }>,
+  context: CheckContext,
+): Promise<CheckResult> {
+  const { body, registryUrl } = await fetchRegistryRecord(target.name, context.fetch);
 
   const server = body.server;
   const packages = records(server.packages);

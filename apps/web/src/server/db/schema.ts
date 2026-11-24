@@ -93,20 +93,27 @@ export const rateLimits = pgTable(
 );
 
 export type MonitorStatus = "active" | "unavailable";
+export type MonitorKind = "repo" | "mcp" | "skill";
 
 /** Public repositories someone asked to watch. Only git hashes and file paths are kept. */
 export const monitors = pgTable(
   "monitors",
   {
     id: text("id").primaryKey(),
+    kind: text("kind").$type<MonitorKind>().notNull().default("repo"),
     owner: text("owner").notNull(),
     repo: text("repo").notNull(),
+    /** Unique per watched thing: a repository, an MCP Registry name, or a skill folder. */
     repoKey: text("repo_key").notNull(),
+    /** The MCP Registry name or the skill folder path. Empty for repositories. */
+    target: text("target").notNull().default(""),
     branch: text("branch").notNull(),
     commitSha: text("commit_sha").notNull(),
     /** Agent file path to git blob hash, used to see which files changed. */
     agentFiles: jsonb("agent_files").$type<Record<string, string>>().notNull(),
     status: text("status").$type<MonitorStatus>().notNull().default("active"),
+    /** Latest check result for MCP servers and skills. Repositories use their reports. */
+    lastStatus: text("last_status").$type<ScanStatus>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     checkedAt: timestamp("checked_at", { withTimezone: true }).defaultNow().notNull(),
     changedAt: timestamp("changed_at", { withTimezone: true }),

@@ -58,11 +58,13 @@ export default function PrivacyPage() {
         content to these services.
       </p>
 
-      <h2>Watched repositories</h2>
+      <h2>Watched repositories, MCP servers, and skills</h2>
       <p>
-        When someone watches a public repository, we store its name, branch, latest commit, and the
-        paths and git hashes of its agent files. We never store file contents. Anyone can see which
-        public repositories are watched. We do not record who started watching.
+        When someone watches a public repository or skill, we store its name, branch, latest commit,
+        and the paths and git hashes of its files. For an MCP server, we store its registry name,
+        version, and hashes of its launch packages, hosts, and description. We store the latest
+        check result. We never store file contents. Anyone can see which public repositories are
+        watched. We do not record who started watching.
       </p>
 
       <h2>Package, MCP, skill, and token checks</h2>

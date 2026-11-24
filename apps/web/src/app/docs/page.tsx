@@ -109,9 +109,10 @@ export default function QuickstartPage() {
         describes that one commit, so scan again after you change agent files.
       </p>
 
-      <h2>Watch a repository</h2>
+      <h2>Watch a repository, MCP server, or skill</h2>
       <p>
-        On a report, choose <strong>Watch this repo</strong>. Hierophant checks the default branch
+        Use the <strong>Watch</strong> tab on the home page, or choose{" "}
+        <strong>Watch this repo</strong> on a report. Hierophant checks the default branch
         about every 30 minutes. When an agent file is added, changed, or removed, it records which
         files changed and scans the new commit.
       </p>
@@ -119,6 +120,12 @@ export default function QuickstartPage() {
         The watch page lists every change with its result. Follow it with the RSS feed linked on
         that page, or add its badge to a README. No account is needed. If a repository becomes
         private or is deleted, checks stop.
+      </p>
+      <p>
+        MCP servers and agent skills can be watched from their check result. For an MCP server,
+        Hierophant watches its official MCP Registry record: the version, launch packages, remote
+        hosts, and description. For a skill, it watches the files in the skill folder. When either
+        changes, it runs the check again and adds the result to the feed.
       </p>
 
       <h2>Local tools</h2>

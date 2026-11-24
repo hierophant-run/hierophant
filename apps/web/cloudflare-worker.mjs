@@ -1,6 +1,6 @@
 import handler from "./.open-next/worker.js";
 
-const BADGE_CACHE_PREFIXES = ["/api/badge/check/", "/api/badge/watch/"];
+const BADGE_CACHE_PREFIXES = ["/api/badge/check/", "/api/badge/watch/", "/api/badge/monitor/"];
 const CRON_HEADER = "x-hierophant-cron";
 const MONITOR_URL = "https://hierophanthq.com/api/monitor/run";
 
@@ -42,7 +42,8 @@ const worker = {
     const isNoncePage =
       pathname.startsWith("/r/") ||
       pathname.startsWith("/check/") ||
-      (pathname.startsWith("/w/") && !pathname.endsWith("/feed.xml"));
+      ((pathname.startsWith("/w/") || pathname.startsWith("/watch/")) &&
+        !pathname.endsWith("/feed.xml"));
     if (!isNoncePage) return response;
 
     const protectedResponse = new Response(response.body, response);

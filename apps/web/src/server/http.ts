@@ -3,9 +3,11 @@ import { isFeedbackReason } from "./feedback";
 import type { FetchLike } from "./github-client";
 import { GitHubClient } from "./github-client";
 import { parseGitHubUrl } from "./github-url";
+import { parseCheckPath, type CheckTarget } from "@/lib/check-target";
+import { watchPath } from "./watch-view";
 import { errorName, logError } from "./log";
 import type { RateLimiter } from "./rate-limit";
-import { runMonitors, watchRepository } from "./monitor-service";
+import { runMonitors, watchCheck, watchFromUrl, watchRepository } from "./monitor-service";
 import type { MonitorStore } from "./monitor-store";
 import { isReportId, type ReportStore } from "./report-store";
 import { toReportView, type ReportView } from "./report-view";
@@ -300,7 +302,21 @@ export async function handleReportRequest(id: string, getDeps: () => ScanDeps): 
   }
 }
 
-/** Starts watching the repository behind a report. */
+/** Parses a check page path such as /check/mcp/io.github.owner/server. */
+function watchableCheck(path: unknown): Extract<CheckTarget, { kind: "mcp" | "skill" }> {
+  if (typeof path !== "string" || path.length > 600 || !path.startsWith("/check/")) {
+    throw new ApiError("invalid_request");
+  }
+  const url = new URL(path, "https://hierophanthq.com");
+  const [kind = "", ...segments] = url.pathname.slice("/check/".length).split("/");
+  const target = parseCheckPath(kind, segments, url.searchParams.get("ref"));
+  if (!target || (target.kind !== "mcp" && target.kind !== "skill")) {
+    throw new ApiError("invalid_request");
+  }
+  return target;
+}
+
+/** Starts watching a repository, an MCP server, or an agent skill. */
 export async function handleWatchRequest(
   request: Request,
   getDeps: () => ScanDeps,
@@ -315,22 +331,32 @@ export async function handleWatchRequest(
       throw new ApiError("invalid_request");
     }
     const keys = Object.keys(body);
-    const { reportId } = body as { reportId?: unknown };
-    if (keys.length !== 1 || typeof reportId !== "string" || !isReportId(reportId)) {
+    const { reportId, url, check } = body as { reportId?: unknown; url?: unknown; check?: unknown };
+    if (keys.length !== 1 || !["reportId", "url", "check"].includes(keys[0]!)) {
       throw new ApiError("invalid_request");
     }
+    if (keys[0] === "reportId" && (typeof reportId !== "string" || !isReportId(reportId))) {
+      throw new ApiError("invalid_request");
+    }
+    const repoTarget = keys[0] === "url" ? parseGitHubUrl(url) : null;
+    const checkTarget = keys[0] === "check" ? watchableCheck(check) : null;
 
     const limit = await guardDatabase(() => deps.limiter.consume(clientIp(request)));
     if (!limit.allowed) throw new ApiError("rate_limited", limit.retryAfterSeconds);
 
-    const { monitor, created } = await watchRepository(reportId, {
+    const budget = deps.subrequestLimit ? new ScanBudget(deps.subrequestLimit) : undefined;
+    const monitorDeps = {
       store: deps.store,
       monitors: deps.monitors,
-      fetch: deps.fetch,
+      fetch: budget ? budget.wrap(deps.fetch) : deps.fetch,
       ...(deps.githubToken ? { githubToken: deps.githubToken } : {}),
-    });
-    const path = `/w/${encodeURIComponent(monitor.owner)}/${encodeURIComponent(monitor.repo)}`;
-    return jsonResponse({ path, created }, created ? 201 : 200);
+    };
+    const { monitor, created } = repoTarget
+      ? await watchFromUrl(repoTarget, monitorDeps, budget)
+      : checkTarget
+        ? await watchCheck(checkTarget, monitorDeps)
+        : await watchRepository(reportId as string, monitorDeps);
+    return jsonResponse({ path: watchPath(monitor), created }, created ? 201 : 200);
   } catch (error) {
     return errorResponse(error, "watch");
   }
