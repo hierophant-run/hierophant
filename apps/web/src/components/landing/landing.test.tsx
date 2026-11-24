@@ -238,6 +238,7 @@ describe("landing copy", () => {
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
     expect(hrefs.length).toBeGreaterThan(4);
     const pages = [
+      "/",
       "/docs",
       "/docs/rules",
       "/docs/limitations",
@@ -263,6 +264,29 @@ describe("landing copy", () => {
         "noopener",
       );
     }
+  });
+
+  it("returns to the top without adding an anchor to the URL", () => {
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true })),
+    );
+    window.history.replaceState(null, "", "/#check-token");
+    const { container } = render(<Navbar />);
+    const home = container.querySelector("header a") as HTMLAnchorElement;
+    expect(home.getAttribute("href")).toBe("/");
+    fireEvent.click(home);
+    expect(window.location.hash).toBe("");
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "auto" });
+    vi.unstubAllGlobals();
+  });
+
+  it("removes the old top anchor from the URL", () => {
+    window.history.replaceState(null, "", "/#top");
+    render(<Navbar />);
+    expect(window.location.hash).toBe("");
   });
 
   it("copies the CLI install command", async () => {

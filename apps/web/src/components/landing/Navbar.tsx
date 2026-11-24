@@ -1,14 +1,13 @@
 import { Logo } from "@/components/brand/Logo";
 import { CHECK_TABS, checkTabHash } from "@/lib/check-tabs";
 import { docsHref, GITHUB_URL, siteHref } from "@/lib/site";
+import { HomeLink } from "./HomeLink";
 import { ScanLink } from "./ScanLink";
 
 const linkClass = "text-sm text-muted transition-colors hover:text-text";
 const mobileLinkClass = `${linkClass} px-2 py-2.5`;
-const tokenLinkClass = "text-sm font-medium text-dot transition-colors hover:text-text";
-const mobileTokenLinkClass = `${tokenLinkClass} px-2 py-2.5`;
 
-function NavLinks({ className, tokenClassName }: { className: string; tokenClassName: string }) {
+function NavLinks({ className }: { className: string }) {
   return (
     <>
       {CHECK_TABS.map((tab) => (
@@ -22,7 +21,7 @@ function NavLinks({ className, tokenClassName }: { className: string; tokenClass
       <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className={className}>
         GitHub
       </a>
-      <a href={siteHref("/token")} className={tokenClassName}>
+      <a href={siteHref("/token")} className={className}>
         $HIEROPHANT
       </a>
     </>
@@ -33,12 +32,12 @@ export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-bg/75 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-8">
-        <a href={siteHref("/#top")} className="shrink-0">
+        <HomeLink className="shrink-0">
           <Logo size={30} />
-        </a>
+        </HomeLink>
 
         <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
-          <NavLinks className={linkClass} tokenClassName={tokenLinkClass} />
+          <NavLinks className={linkClass} />
         </nav>
 
         <div className="flex items-center gap-2">
@@ -68,7 +67,7 @@ export function Navbar() {
               aria-label="Mobile"
               className="absolute top-12 right-0 flex w-48 flex-col border border-line bg-surface p-2"
             >
-              <NavLinks className={mobileLinkClass} tokenClassName={mobileTokenLinkClass} />
+              <NavLinks className={mobileLinkClass} />
             </nav>
           </details>
         </div>
