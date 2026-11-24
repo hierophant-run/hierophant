@@ -11,7 +11,14 @@ export type TokenLaunch = {
 };
 
 /** Null until launch. Fill in every field from the official launch post. */
-export const TOKEN_LAUNCH: TokenLaunch | null = null;
+export const TOKEN_LAUNCH: TokenLaunch | null = {
+  address: "0x387785c7dd3142258a67e0f1f041119038d6733d",
+  network: "Robinhood Chain",
+  explorerUrl:
+    "https://robinhoodchain.blockscout.com/token/0x387785c7dd3142258a67e0f1f041119038d6733d",
+  launchUrl: null,
+  launchLabel: null,
+};
 
 export const isEvmAddress = (value: string) => /^0x[0-9a-fA-F]{40}$/.test(value);
 
